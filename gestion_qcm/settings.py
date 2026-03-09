@@ -21,10 +21,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # App du projet
+    # Apps du projet
+    'accounts',
     'concours',
+    'questions',
+    'examens',
+    'resultats',
 ]
-
 
 # Middleware
 MIDDLEWARE = [
@@ -109,10 +112,10 @@ USE_TZ = True
 
 
 # Static files
-STATIC_URL = '/static/'
+STATIC_URL = 'static/'
 
 STATICFILES_DIRS = [
-    BASE_DIR / "static"
+    BASE_DIR / "static",
 ]
 
 
