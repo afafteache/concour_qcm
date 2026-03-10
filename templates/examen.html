@@ -1,0 +1,231 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>Passer l'examen</title>
+
+    <link href="{% static 'vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/sb-admin-2.min.css' %}" rel="stylesheet">
+</head>
+
+<body id="page-top">
+
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+
+            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="#">
+                <div class="sidebar-brand-icon rotate-n-15">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                <div class="sidebar-brand-text mx-3">Candidat</div>
+            </a>
+
+            <hr class="sidebar-divider">
+
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'dashboard_candidat' %}">
+                    <i class="fas fa-fw fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+
+            <li class="nav-item active">
+                <a class="nav-link" href="#">
+                    <i class="fas fa-fw fa-file-alt"></i>
+                    <span>Passer l'examen</span>
+                </a>
+            </li>
+
+        </ul>
+        <!-- End Sidebar -->
+
+        <div id="content-wrapper" class="d-flex flex-column">
+            <div id="content">
+
+                <!-- Topbar -->
+                <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+                    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+                        <i class="fa fa-bars"></i>
+                    </button>
+                    <h4 class="m-0 text-primary font-weight-bold">Examen QCM</h4>
+                </nav>
+
+                <div class="container-fluid">
+
+                    <h1 class="h3 mb-4 text-gray-800">Passer l'examen</h1>
+
+                    <div class="row">
+
+                        <!-- Infos candidat -->
+                        <div class="col-lg-4">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">Informations du candidat</h6>
+                                </div>
+                                <div class="card-body">
+                                    <p><strong>Nom complet :</strong> {{ candidat.nom_complet }}</p>
+                                    <p><strong>CIN :</strong> {{ candidat.cin }}</p>
+                                    <p><strong>Module :</strong> {{ examen.module }}</p>
+                                </div>
+                            </div>
+
+                            <!-- Temps restant -->
+                            <div class="card shadow mb-4 border-left-warning">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-warning">Temps restant</h6>
+                                </div>
+                                <div class="card-body">
+                                    <h4 id="timer" class="font-weight-bold text-center">60:00</h4>
+                                    <p class="text-center mb-0">Le chronomètre commence dès le début de l’examen.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Questions -->
+                        <div class="col-lg-8">
+                            <form method="post" action="{% url 'soumettre_examen' examen.id %}">
+                                {% csrf_token %}
+
+                                <div class="card shadow mb-4">
+                                    <div class="card-header py-3">
+                                        <h6 class="m-0 font-weight-bold text-primary">Question 1</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="mb-3">{{ question1.texte }}</p>
+
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="radio" name="question_1" value="A" id="q1a">
+                                            <label class="form-check-label" for="q1a">
+                                                {{ question1.choix_a }}
+                                            </label>
+                                        </div>
+
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="radio" name="question_1" value="B" id="q1b">
+                                            <label class="form-check-label" for="q1b">
+                                                {{ question1.choix_b }}
+                                            </label>
+                                        </div>
+
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="radio" name="question_1" value="C" id="q1c">
+                                            <label class="form-check-label" for="q1c">
+                                                {{ question1.choix_c }}
+                                            </label>
+                                        </div>
+
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question_1" value="D" id="q1d">
+                                            <label class="form-check-label" for="q1d">
+                                                {{ question1.choix_d }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card shadow mb-4">
+                                    <div class="card-header py-3">
+                                        <h6 class="m-0 font-weight-bold text-primary">Question 2</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="mb-3">{{ question2.texte }}</p>
+
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="radio" name="question_2" value="A" id="q2a">
+                                            <label class="form-check-label" for="q2a">
+                                                {{ question2.choix_a }}
+                                            </label>
+                                        </div>
+
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="radio" name="question_2" value="B" id="q2b">
+                                            <label class="form-check-label" for="q2b">
+                                                {{ question2.choix_b }}
+                                            </label>
+                                        </div>
+
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="radio" name="question_2" value="C" id="q2c">
+                                            <label class="form-check-label" for="q2c">
+                                                {{ question2.choix_c }}
+                                            </label>
+                                        </div>
+
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="question_2" value="D" id="q2d">
+                                            <label class="form-check-label" for="q2d">
+                                                {{ question2.choix_d }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Tu peux répéter le même bloc pour les autres questions -->
+
+                                <div class="text-right mb-4">
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-paper-plane"></i> Soumettre l'examen
+                                    </button>
+                                </div>
+
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <footer class="sticky-footer bg-white">
+                <div class="container my-auto">
+                    <div class="copyright text-center my-auto">
+                        <span>Copyright &copy; Smart QCM 2026</span>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
+    <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'vendor/jquery-easing/jquery.easing.min.js' %}"></script>
+    <script src="{% static 'js/sb-admin-2.min.js' %}"></script>
+
+    <script>
+        let minutes = 60;
+        let seconds = 0;
+
+        function updateTimer() {
+            let displayMinutes = minutes < 10 ? "0" + minutes : minutes;
+            let displaySeconds = seconds < 10 ? "0" + seconds : seconds;
+            document.getElementById("timer").textContent = displayMinutes + ":" + displaySeconds;
+
+            if (minutes === 0 && seconds === 0) {
+                alert("Le temps est écoulé. L'examen va être soumis.");
+                document.querySelector("form").submit();
+                return;
+            }
+
+            if (seconds === 0) {
+                minutes--;
+                seconds = 59;
+            } else {
+                seconds--;
+            }
+        }
+
+        setInterval(updateTimer, 1000);
+    </script>
+
+</body>
+</html>
