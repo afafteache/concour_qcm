@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mon Résultat – Smart QCM</title>
+  {% load static %}
+  <link href="{% static 'vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet">
+  <link href="{% static 'css/sb-admin-2.css' %}" rel="stylesheet">
+  <style>
+    body { background: #f4f6fc; }
+    .score-circle {
+      width: 160px; height: 160px; border-radius: 50%;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      font-size: 2.5rem; font-weight: 700; margin: 0 auto;
+      border: 8px solid;
+    }
+    .score-circle.reussi  { border-color: #1cc88a; color: #1cc88a; background: #f0fff8; }
+    .score-circle.echec   { border-color: #e74a3b; color: #e74a3b; background: #fff5f5; }
+    .score-circle small   { font-size: .75rem; font-weight: 400; margin-top: -6px; }
+  </style>
+</head>
+<body>
+
+<nav class="navbar navbar-light bg-white shadow-sm mb-4">
+  <div class="container-fluid">
+    <span class="navbar-brand font-weight-bold text-primary">
+      <i class="fas fa-brain mr-2"></i>Smart QCM
+    </span>
+    <a href="{% url 'dashboard_candidat' %}" class="btn btn-sm btn-outline-primary">
+      <i class="fas fa-home mr-1"></i>Mon espace
+    </a>
+  </div>
+</nav>
+
+<div class="container" style="max-width:650px;">
+
+  <div class="card shadow border-0 mb-4">
+    <div class="card-body text-center py-5 px-4">
+
+      <!-- Icône résultat -->
+      {% if reussi %}
+        <i class="fas fa-award fa-4x text-success mb-3"></i>
+        <h4 class="font-weight-bold text-success mb-1">Félicitations !</h4>
+        <p class="text-muted mb-4">Vous avez réussi cet examen.</p>
+      {% else %}
+        <i class="fas fa-times-circle fa-4x text-danger mb-3"></i>
+        <h4 class="font-weight-bold text-danger mb-1">Examen non validé</h4>
+        <p class="text-muted mb-4">Vous n'avez pas atteint le seuil de réussite.</p>
+      {% endif %}
+
+      <!-- Cercle score -->
+      <div class="score-circle {% if reussi %}reussi{% else %}echec{% endif %} mb-4">
+        <span>{{ pourcentage }}%</span>
+        <small>{{ resultat.score }}/{{ total }}</small>
+      </div>
+
+      <!-- Barre de progression -->
+      <div class="mb-4">
+        <div class="d-flex justify-content-between small text-muted mb-1">
+          <span>Score obtenu</span>
+          <span>{{ resultat.score }} bonne(s) réponse(s) sur {{ total }}</span>
+        </div>
+        <div class="progress" style="height:14px;border-radius:7px;">
+          <div class="progress-bar {% if reussi %}bg-success{% else %}bg-danger{% endif %}"
+               style="width:{{ pourcentage }}%;border-radius:7px;font-size:.7rem;">
+            {{ pourcentage }}%
+          </div>
+        </div>
+        <div class="text-muted small mt-1 text-right">
+          Seuil de réussite : 50%
+        </div>
+      </div>
+
+      <!-- Détails -->
+      <div class="card border-0 bg-light mb-4">
+        <div class="card-body text-left py-3 px-4">
+          <div class="row">
+            <div class="col-6">
+              <div class="text-muted small">Examen</div>
+              <div class="font-weight-bold">{{ examen.titre }}</div>
+            </div>
+            <div class="col-6">
+              <div class="text-muted small">Date de passage</div>
+              <div class="font-weight-bold">{{ resultat.date_passage|date:"d/m/Y à H:i" }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <a href="{% url 'dashboard_candidat' %}" class="btn btn-primary btn-lg px-5">
+        <i class="fas fa-home mr-2"></i>Retour à mon espace
+      </a>
+
+    </div>
+  </div>
+
+</div>
+
+<script src="{% static 'vendor/jquery/jquery.js' %}"></script>
+<script src="{% static 'vendor/bootstrap/js/bootstrap.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion Candidat – Smart QCM</title>
+  {% load static %}
+  <link href="{% static 'vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet">
+  <link href="{% static 'css/sb-admin-2.css' %}" rel="stylesheet">
+</head>
+<body style="background:linear-gradient(135deg,#1cc88a,#13855c);min-height:100vh;display:flex;align-items:center;">
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-xl-5 col-lg-6 col-md-8">
+
+      <div class="card o-hidden border-0 shadow-lg">
+        <div class="card-body p-0">
+
+          <div class="p-5 text-center" style="background:linear-gradient(135deg,#1cc88a,#17a673);border-radius:0.35rem 0.35rem 0 0;">
+            <i class="fas fa-user-graduate fa-3x text-white mb-3"></i>
+            <h3 class="text-white font-weight-bold mb-1">Espace Candidat</h3>
+            <p class="text-white-50 mb-0">Smart QCM — EST Dakhla</p>
+          </div>
+
+          <div class="p-5">
+            {% if messages %}
+              {% for msg in messages %}
+                <div class="alert alert-{{ msg.tags }} alert-dismissible fade show">
+                  {{ msg }}<button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                </div>
+              {% endfor %}
+            {% endif %}
+
+            <p class="text-gray-600 text-center mb-4">
+              Saisissez votre nom complet et votre CIN pour accéder à votre espace.
+            </p>
+
+            <form method="POST">
+              {% csrf_token %}
+
+              <div class="form-group">
+                <label class="font-weight-bold small text-gray-700">Nom complet</label>
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fas fa-user" style="color:#1cc88a;"></i></span>
+                  </div>
+                  <input type="text" class="form-control form-control-user" name="nom_complet"
+                         placeholder="Prénom et Nom (ex: Mohamed Alami)" autofocus required>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="font-weight-bold small text-gray-700">CIN</label>
+                <div class="input-group">
+                  <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fas fa-id-card" style="color:#1cc88a;"></i></span>
+                  </div>
+                  <input type="text" class="form-control form-control-user" name="cin"
+                         placeholder="Votre numéro CIN" required>
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-success btn-user btn-block mt-4"
+                      style="background:#1cc88a;border-color:#1cc88a;">
+                <i class="fas fa-sign-in-alt mr-2"></i>Accéder à mon espace
+              </button>
+            </form>
+
+            <hr>
+            <div class="text-center">
+              <a href="{% url 'login' %}" class="small text-success">
+                <i class="fas fa-shield-alt mr-1"></i>Connexion Administrateur / Enseignant
+              </a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script src="{% static 'vendor/jquery/jquery.js' %}"></script>
+<script src="{% static 'vendor/bootstrap/js/bootstrap.js' %}"></script>
+</body>
+</html>

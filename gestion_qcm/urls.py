@@ -1,15 +1,13 @@
+# C:\Users\HP ElieBook\Downloads\pfe\gestion_qcm\urls.py
+
 from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-
-    # concours
+    path('', include('accounts.urls')),
+    path('', include('examens.urls')),
     path('', include('concours.urls')),
-
-    # examens
-    path('examens/', include('examens.urls')),
-
-    # resultats
-    path('resultats/', include('resultats.urls')),
+    path('', include('resultats.urls')),
+    # path('', include('questions.urls')),  # ← Afaf
 ]

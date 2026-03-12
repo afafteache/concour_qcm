@@ -1,0 +1,63 @@
+{% extends 'admin/base_admin.html' %}
+{% block title %}Résultats – Smart QCM{% endblock %}
+{% block nav_resultats %}active{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4">
+  <h4 class="mb-0 font-weight-bold text-primary"><i class="fas fa-chart-bar mr-2"></i>Résultats des examens</h4>
+</div>
+
+<form method="GET" class="mb-3">
+  <div class="input-group" style="max-width:350px;">
+    <select class="form-control" name="examen" onchange="this.form.submit()">
+      <option value="">Tous les examens</option>
+      {% for e in examens %}
+      <option value="{{ e.pk }}" {% if examen_selectionne == e.pk|stringformat:"s" %}selected{% endif %}>{{ e.titre }}</option>
+      {% endfor %}
+    </select>
+  </div>
+</form>
+
+<div class="card shadow mb-4">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="thead-light">
+          <tr>
+            <th>Candidat</th><th>CIN</th><th>Examen</th>
+            <th>Score</th><th>%</th><th>Résultat</th><th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in resultats %}
+          <tr>
+            <td><strong>{{ r.candidat.get_full_name }}</strong></td>
+            <td><code>{{ r.candidat.profil.cin }}</code></td>
+            <td>{{ r.examen.titre }}</td>
+            <td><strong>{{ r.score }}</strong> / {{ r.total_questions }}</td>
+            <td>
+              <div class="progress" style="height:6px;width:80px;display:inline-block;vertical-align:middle;">
+                <div class="progress-bar {% if r.reussi %}bg-success{% else %}bg-danger{% endif %}"
+                     style="width:{{ r.pourcentage }}%"></div>
+              </div>
+              <span class="ml-1">{{ r.pourcentage }}%</span>
+            </td>
+            <td>
+              {% if r.reussi %}
+                <span class="badge badge-success">Réussi</span>
+              {% else %}
+                <span class="badge badge-danger">Échoué</span>
+              {% endif %}
+            </td>
+            <td>{{ r.date_passage|date:"d/m/Y H:i" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" class="text-center text-muted py-4">Aucun résultat enregistré.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

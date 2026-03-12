@@ -1,18 +1,12 @@
 from pathlib import Path
+from django.contrib.messages import constants as messages
 
-# Base directory
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# SECURITY
 SECRET_KEY = 'django-insecure-change-this-key'
-
 DEBUG = True
-
 ALLOWED_HOSTS = []
 
-
-# Applications
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -21,15 +15,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # Apps du projet
     'accounts',
     'concours',
-    'questions',
+    # 'questions',   ← Afaf
     'examens',
     'resultats',
 ]
 
-# Middleware
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -40,20 +32,13 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-
 ROOT_URLCONF = 'gestion_qcm.urls'
 
-
-# Templates
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-
-        # dossier templates global
         'DIRS': [BASE_DIR / 'templates'],
-
         'APP_DIRS': True,
-
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
@@ -65,11 +50,8 @@ TEMPLATES = [
     },
 ]
 
-
 WSGI_APPLICATION = 'gestion_qcm.wsgi.application'
 
-
-# DATABASE MySQL
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -84,40 +66,31 @@ DATABASES = {
     }
 }
 
-
-# Password validation
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-
-# Language
 LANGUAGE_CODE = 'fr-fr'
-
-TIME_ZONE = 'UTC'
-
+TIME_ZONE = 'Africa/Casablanca'
 USE_I18N = True
 USE_TZ = True
 
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [BASE_DIR / 'static']
 
-# Static files
-STATIC_URL = 'static/'
+MESSAGE_TAGS = {
+    messages.DEBUG:   'secondary',
+    messages.INFO:    'info',
+    messages.SUCCESS: 'success',
+    messages.WARNING: 'warning',
+    messages.ERROR:   'danger',
+}
 
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-]
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'dashboard_admin'
+LOGOUT_REDIRECT_URL = 'login'
 
-
-# Default primary key
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

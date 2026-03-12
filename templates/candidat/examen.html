@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ examen.titre }} – Smart QCM</title>
+  {% load static %}
+  <link href="{% static 'vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet">
+  <link href="{% static 'css/sb-admin-2.css' %}" rel="stylesheet">
+  <style>
+    body { background: #f4f6fc; }
+    .timer-bar { position: sticky; top: 0; z-index: 999; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.1); }
+    .timer-display { font-size: 1.8rem; font-weight: 700; font-family: monospace; }
+    .timer-danger { color: #e74a3b !important; animation: pulse .8s infinite; }
+    @keyframes pulse { 0%,100%{ opacity:1; } 50%{ opacity:.5; } }
+    .question-card { border-left: 4px solid #4e73df; border-radius: .5rem; margin-bottom: 1.2rem; }
+    .choix-label { display: flex; align-items: center; padding: .7rem 1rem;
+                   border: 2px solid #e3e6f0; border-radius: .4rem; margin-bottom: .4rem;
+                   cursor: pointer; transition: all .15s; }
+    .choix-label:hover { border-color: #4e73df; background: #f0f4ff; }
+    input[type=radio]:checked + .choix-label { border-color: #4e73df; background: #e8edff; font-weight: 600; }
+    .progress-exam { height: 6px; border-radius: 3px; }
+    /* Overlay alerte */
+    .overlay-alerte { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6);
+                      z-index:9999; align-items:center; justify-content:center; }
+    .overlay-alerte.show { display:flex; }
+    .alerte-box { background:#fff; border-radius:1rem; padding:2.5rem 3rem; text-align:center; max-width:420px; }
+  </style>
+</head>
+<body>
+
+<!-- ══ BARRE TIMER FIXE EN HAUT ══ -->
+<div class="timer-bar px-4 py-2">
+  <div class="d-flex align-items-center justify-content-between">
+    <div>
+      <span class="font-weight-bold text-primary">{{ examen.titre }}</span>
+      <span class="text-muted small ml-2">— {{ questions|length }} question(s)</span>
+    </div>
+    <div class="d-flex align-items-center">
+      <i class="fas fa-clock mr-2 text-warning"></i>
+      <span class="timer-display text-primary" id="timer">
+        {% with h=duree_restante|divisibleby:3600 %}--:--:--{% endwith %}
+      </span>
+    </div>
+    <div style="width:150px;">
+      <div class="progress progress-exam">
+        <div class="progress-bar bg-success" id="progress-bar" style="width:0%"></div>
+      </div>
+      <small class="text-muted" id="progress-text">0 / {{ questions|length }} répondu(s)</small>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CONTENU EXAMEN ══ -->
+<div class="container py-4" style="max-width:800px;">
+
+  <form method="POST" id="examen-form">
+    {% csrf_token %}
+
+    {% for question in questions %}
+    <div class="card question-card shadow-sm">
+      <div class="card-body px-4 py-3">
+
+        <div class="d-flex align-items-start mb-3">
+          <span class="badge badge-primary mr-3 mt-1" style="font-size:.85rem;min-width:28px;">{{ forloop.counter }}</span>
+          <p class="mb-0 font-weight-bold text-gray-800" style="font-size:1rem;">{{ question.texte }}</p>
+        </div>
+
+        {% for choix in question.choix_set.all %}
+        <div class="mb-1">
+          <input type="radio" name="question_{{ question.id }}" id="q{{ question.id }}_c{{ choix.id }}"
+                 value="{{ choix.id }}" class="d-none radio-choix" data-qid="{{ question.id }}">
+          <label for="q{{ question.id }}_c{{ choix.id }}" class="choix-label w-100 mb-0">
+            <span class="badge badge-light mr-3">{{ forloop.counter|add:64|chr }}</span>
+            {{ choix.texte }}
+          </label>
+        </div>
+        {% endfor %}
+
+      </div>
+    </div>
+    {% empty %}
+    <div class="alert alert-warning text-center">
+      <i class="fas fa-exclamation-triangle mr-2"></i>
+      Aucune question dans cet examen pour le moment.
+    </div>
+    {% endfor %}
+
+    {% if questions %}
+    <div class="text-center mt-4 mb-5">
+      <button type="button" class="btn btn-success btn-lg px-5 shadow" onclick="soumettre()">
+        <i class="fas fa-paper-plane mr-2"></i>Terminer et soumettre
+      </button>
+    </div>
+    {% endif %}
+
+  </form>
+
+</div>
+
+<!-- ══ ALERTE TEMPS ÉCOULÉ ══ -->
+<div class="overlay-alerte" id="alerte-temps">
+  <div class="alerte-box">
+    <i class="fas fa-hourglass-end fa-4x text-danger mb-3"></i>
+    <h4 class="font-weight-bold text-danger mb-2">Temps écoulé !</h4>
+    <p class="text-muted mb-4">
+      Le temps imparti est terminé. Votre examen va être soumis automatiquement.
+    </p>
+    <div class="spinner-border text-primary" role="status"></div>
+  </div>
+</div>
+
+<!-- ══ ALERTE SUCCÈS ══ -->
+<div class="overlay-alerte" id="alerte-succes">
+  <div class="alerte-box">
+    <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+    <h4 class="font-weight-bold text-success mb-2">Examen soumis avec succès !</h4>
+    <p class="text-muted mb-4">
+      Vous avez terminé votre examen. Votre résultat sera affiché dans quelques instants.
+    </p>
+    <div class="spinner-border text-success" role="status"></div>
+  </div>
+</div>
+
+<script src="{% static 'vendor/jquery/jquery.js' %}"></script>
+<script src="{% static 'vendor/bootstrap/js/bootstrap.js' %}"></script>
+<script>
+const DUREE     = {{ duree_restante }};
+const NB_Q      = {{ questions|length }};
+let   reste     = DUREE;
+let   soumis    = false;
+const timerEl   = document.getElementById('timer');
+const progressB = document.getElementById('progress-bar');
+const progressT = document.getElementById('progress-text');
+
+// ── Timer ────────────────────────────────────────────────
+function tick(){
+  if(reste < 0 && !soumis){ soumettreForce(); return; }
+  const h = String(Math.floor(reste/3600)).padStart(2,'0');
+  const m = String(Math.floor((reste%3600)/60)).padStart(2,'0');
+  const s = String(reste%60).padStart(2,'0');
+  timerEl.textContent = h+':'+m+':'+s;
+  if(reste <= 60) timerEl.classList.add('timer-danger');
+  reste--;
+  setTimeout(tick, 1000);
+}
+tick();
+
+// ── Suivi de progression ─────────────────────────────────
+document.querySelectorAll('.radio-choix').forEach(function(radio){
+  radio.addEventListener('change', majProgression);
+});
+
+function majProgression(){
+  const qids  = new Set();
+  document.querySelectorAll('.radio-choix').forEach(r => qids.add(r.dataset.qid));
+  let repondues = 0;
+  qids.forEach(function(qid){
+    if(document.querySelector('.radio-choix[data-qid="'+qid+'"]:checked')) repondues++;
+  });
+  const pct = NB_Q > 0 ? Math.round(repondues/NB_Q*100) : 0;
+  progressB.style.width = pct+'%';
+  progressT.textContent = repondues+' / '+NB_Q+' répondu(s)';
+}
+
+// ── Soumettre volontairement ─────────────────────────────
+function soumettre(){
+  if(soumis) return;
+  soumis = true;
+  document.getElementById('alerte-succes').classList.add('show');
+  setTimeout(function(){ document.getElementById('examen-form').submit(); }, 1800);
+}
+
+// ── Soumission forcée (temps écoulé) ────────────────────
+function soumettreForce(){
+  if(soumis) return;
+  soumis = true;
+  timerEl.textContent = '00:00:00';
+  timerEl.classList.add('timer-danger');
+  document.getElementById('alerte-temps').classList.add('show');
+  setTimeout(function(){ document.getElementById('examen-form').submit(); }, 3000);
+}
+
+// Bloquer navigation arrière pendant l'examen
+history.pushState(null, null, window.location.href);
+window.addEventListener('popstate', function(){ history.pushState(null, null, window.location.href); });
+</script>
+</body>
+</html>

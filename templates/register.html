@@ -1,0 +1,64 @@
+{% extends 'admin/base_admin.html' %}
+{% block title %}Créer un compte – Smart QCM{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center mb-4">
+  <a href="{% url 'dashboard_admin' %}" class="btn btn-sm btn-outline-secondary mr-3"><i class="fas fa-arrow-left"></i></a>
+  <h4 class="mb-0 font-weight-bold text-primary"><i class="fas fa-user-plus mr-2"></i>Créer un compte</h4>
+</div>
+
+<div class="card shadow" style="max-width:600px;">
+  <div class="card-body p-4">
+    <form method="POST">
+      {% csrf_token %}
+      <div class="form-row">
+        <div class="form-group col-md-6">
+          <label><strong>Prénom *</strong></label>
+          <input type="text" class="form-control" name="first_name" required>
+        </div>
+        <div class="form-group col-md-6">
+          <label><strong>Nom *</strong></label>
+          <input type="text" class="form-control" name="last_name" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group col-md-6">
+          <label><strong>CIN *</strong></label>
+          <input type="text" class="form-control" name="cin" required placeholder="Ex: AB123456">
+        </div>
+        <div class="form-group col-md-6">
+          <label><strong>Rôle *</strong></label>
+          <select class="form-control" name="role">
+            <option value="candidat">Candidat</option>
+            {% if request.user.profil.role == 'admin' %}
+            <option value="enseignant">Enseignant</option>
+            <option value="admin">Administrateur</option>
+            {% endif %}
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label><strong>Email</strong> <small class="text-muted">(optionnel)</small></label>
+        <input type="email" class="form-control" name="email">
+      </div>
+      <div class="form-row">
+        <div class="form-group col-md-6">
+          <label><strong>Mot de passe *</strong></label>
+          <input type="password" class="form-control" name="password" required>
+        </div>
+        <div class="form-group col-md-6">
+          <label><strong>Confirmer *</strong></label>
+          <input type="password" class="form-control" name="password2" required>
+        </div>
+      </div>
+      <div class="alert alert-info small">
+        <i class="fas fa-info-circle mr-1"></i>
+        Les candidats se connectent avec leur <strong>nom complet + CIN</strong> — pas de mot de passe nécessaire.
+      </div>
+      <div class="d-flex justify-content-end mt-2">
+        <a href="{% url 'dashboard_admin' %}" class="btn btn-secondary mr-2">Annuler</a>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save mr-1"></i>Créer le compte</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
