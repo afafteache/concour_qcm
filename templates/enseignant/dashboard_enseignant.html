@@ -1,0 +1,224 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Smart QCM — Dashboard Enseignant</title>
+    <link href="{% static 'vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/sb-admin-2.css' %}" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #f4f6f9; font-family: 'Nunito', sans-serif; display: flex; min-height: 100vh; }
+
+        /* SIDEBAR */
+        .sidebar { width: 240px; flex-shrink: 0; background: #2c4a8c; display: flex; flex-direction: column; min-height: 100vh; }
+        .sidebar-brand { padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.15); display: flex; align-items: center; gap: 10px; }
+        .sidebar-brand .icon { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; }
+        .sidebar-brand span { color: white; font-size: 15px; font-weight: 700; }
+        .sidebar-menu { padding: 16px 12px; flex: 1; }
+        .sidebar-menu .menu-label { color: rgba(255,255,255,0.45); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; padding: 0 8px; margin-bottom: 8px; display: block; }
+        .sidebar-menu a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; color: rgba(255,255,255,0.7); text-decoration: none; font-size: 13px; margin-bottom: 2px; transition: background 0.15s; }
+        .sidebar-menu a:hover { background: rgba(255,255,255,0.1); color: white; }
+        .sidebar-menu a.active { background: rgba(255,255,255,0.15); color: white; font-weight: 600; }
+        .sidebar-menu hr { border: none; border-top: 1px solid rgba(255,255,255,0.15); margin: 12px 8px; }
+        .sidebar-footer { padding: 16px; border-top: 1px solid rgba(255,255,255,0.15); display: flex; align-items: center; gap: 10px; }
+        .sidebar-footer .avatar { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; }
+        .sidebar-footer .name { color: white; font-size: 12px; font-weight: 600; }
+        .sidebar-footer .role { color: rgba(255,255,255,0.5); font-size: 11px; }
+
+        /* CONTENU */
+        .main { flex: 1; display: flex; flex-direction: column; }
+        .topbar { padding: 16px 24px; background: white; border-bottom: 1px solid #e3e6f0; display: flex; justify-content: space-between; align-items: center; }
+        .topbar h1 { font-size: 16px; font-weight: 700; color: #2d3748; }
+        .topbar p { font-size: 12px; color: #718096; margin-top: 2px; }
+        .btn-primary-custom { display: flex; align-items: center; gap: 6px; padding: 8px 16px; background: #2c4a8c; color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none; }
+        .btn-primary-custom:hover { background: #1e3a6e; color: white; }
+
+        .content { padding: 20px 24px; flex: 1; }
+
+        /* STATS */
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+        .stat-card { background: white; border: 1px solid #e3e6f0; border-radius: 10px; padding: 16px; }
+        .stat-card .label { font-size: 12px; color: #718096; margin-bottom: 6px; }
+        .stat-card .value { font-size: 26px; font-weight: 700; color: #2d3748; }
+        .stat-card .sub { font-size: 11px; color: #a0aec0; margin-top: 4px; }
+
+        /* TABLE */
+        .table-card { background: white; border: 1px solid #e3e6f0; border-radius: 10px; overflow: hidden; }
+        .table-header { padding: 14px 20px; border-bottom: 1px solid #e3e6f0; display: flex; justify-content: space-between; align-items: center; }
+        .table-header h2 { font-size: 13px; font-weight: 700; color: #2d3748; }
+        .search-input { font-size: 12px; padding: 6px 12px; border: 1px solid #e3e6f0; border-radius: 8px; width: 200px; color: #2d3748; }
+        .search-input:focus { outline: none; border-color: #2c4a8c; }
+        .thead { display: grid; grid-template-columns: 40px 1fr 110px 90px 90px; gap: 0; background: #f8f9fc; padding: 10px 20px; border-bottom: 1px solid #e3e6f0; }
+        .thead span { font-size: 11px; color: #718096; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+        .trow { display: grid; grid-template-columns: 40px 1fr 110px 90px 90px; gap: 0; padding: 12px 20px; border-bottom: 1px solid #f0f2f5; align-items: center; transition: background 0.1s; }
+        .trow:hover { background: #f8f9fc; }
+        .trow:last-child { border-bottom: none; }
+        .trow .num { font-size: 13px; color: #a0aec0; }
+        .trow .texte { font-size: 13px; color: #2d3748; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 16px; }
+        .trow .module { font-size: 11px; background: #ebf0fc; color: #2c4a8c; padding: 3px 10px; border-radius: 50px; display: inline-block; font-weight: 600; }
+        .trow .date { font-size: 12px; color: #718096; }
+        .trow .actions { display: flex; gap: 6px; }
+        .btn-edit { padding: 5px 9px; border: 1px solid #e3e6f0; border-radius: 6px; background: white; cursor: pointer; color: #718096; text-decoration: none; font-size: 12px; }
+        .btn-edit:hover { border-color: #2c4a8c; color: #2c4a8c; }
+        .btn-del { padding: 5px 9px; border: 1px solid #e3e6f0; border-radius: 6px; background: white; cursor: pointer; color: #e53e3e; text-decoration: none; font-size: 12px; }
+        .btn-del:hover { border-color: #e53e3e; background: #fff5f5; }
+        .empty { padding: 48px; text-align: center; color: #a0aec0; font-size: 14px; }
+
+        /* Messages */
+        .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; }
+        .alert-success { background: #f0fff4; border: 1px solid #9ae6b4; color: #276749; }
+        .alert-danger { background: #fff5f5; border: 1px solid #fc8181; color: #c53030; }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+    <div class="sidebar-brand">
+        <div class="icon">
+            <i class="fas fa-graduation-cap" style="color:white; font-size:14px;"></i>
+        </div>
+        <span>Smart QCM</span>
+    </div>
+
+    <div class="sidebar-menu">
+        <span class="menu-label">Menu</span>
+
+        <a href="{% url 'dashboard_enseignant' %}" class="active">
+            <i class="fas fa-tachometer-alt" style="width:16px;"></i> Dashboard
+        </a>
+        <a href="{% url 'question_liste' %}">
+            <i class="fas fa-question-circle" style="width:16px;"></i> Mes Questions
+        </a>
+        <a href="{% url 'question_ajouter' %}">
+            <i class="fas fa-plus-circle" style="width:16px;"></i> Ajouter une Question
+        </a>
+
+        <hr>
+
+        <a href="{% url 'logout' %}">
+            <i class="fas fa-sign-out-alt" style="width:16px;"></i> Déconnexion
+        </a>
+    </div>
+
+    <div class="sidebar-footer">
+        <div class="avatar">
+            {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+        </div>
+        <div>
+            <div class="name">{{ request.user.get_full_name }}</div>
+            <div class="role">Enseignant</div>
+        </div>
+    </div>
+</div>
+
+<!-- CONTENU PRINCIPAL -->
+<div class="main">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <div>
+            <h1>Banque de Questions</h1>
+            <p>Gérez vos questions QCM</p>
+        </div>
+        <a href="{% url 'question_ajouter' %}" class="btn-primary-custom">
+            <i class="fas fa-plus" style="font-size:12px;"></i> Nouvelle question
+        </a>
+    </div>
+
+    <div class="content">
+
+        <!-- MESSAGES -->
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- STATS -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="label">Total questions</div>
+                <div class="value">{{ nb_questions }}</div>
+                <div class="sub">dans votre banque</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Examens actifs</div>
+                <div class="value">{{ examens|length }}</div>
+                <div class="sub">examens disponibles</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Dernière question</div>
+                <div class="value" style="font-size:14px; padding-top:6px;">
+                    {% if questions %}{{ questions.0.date_creation|date:"d/m/Y" }}{% else %}—{% endif %}
+                </div>
+                <div class="sub">date d'ajout</div>
+            </div>
+        </div>
+
+        <!-- TABLEAU QUESTIONS -->
+        <div class="table-card">
+            <div class="table-header">
+                <h2><i class="fas fa-question-circle" style="color:#2c4a8c; margin-right:8px;"></i>Mes questions</h2>
+                <input type="text" class="search-input" id="searchInput" placeholder="Rechercher une question...">
+            </div>
+
+            <div class="thead">
+                <span>#</span>
+                <span>Question</span>
+                <span>Module</span>
+                <span>Date</span>
+                <span>Actions</span>
+            </div>
+
+            <div id="questionsList">
+                {% for q in questions %}
+                <div class="trow" data-texte="{{ q.texte|lower }}">
+                    <span class="num">{{ forloop.counter }}</span>
+                    <span class="texte" title="{{ q.texte }}">{{ q.texte|truncatechars:65 }}</span>
+                    <span>
+                        {% if q.module %}
+                            <span class="module">{{ q.module.nom }}</span>
+                        {% else %}
+                            <span style="color:#a0aec0; font-size:12px;">—</span>
+                        {% endif %}
+                    </span>
+                    <span class="date">{{ q.date_creation|date:"d/m/Y" }}</span>
+                    <span class="actions">
+                        <a href="{% url 'question_modifier' q.id %}" class="btn-edit" title="Modifier">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a href="{% url 'question_supprimer' q.id %}" class="btn-del" title="Supprimer"
+                            onclick="return confirm('Supprimer cette question ?')">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </span>
+                </div>
+                {% empty %}
+                <div class="empty">
+                    <i class="fas fa-inbox" style="font-size:2rem; display:block; margin-bottom:12px;"></i>
+                    Aucune question pour le moment.<br>
+                    <a href="{% url 'question_ajouter' %}" style="color:#2c4a8c; font-weight:600;">Créer la première question →</a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
+<script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+<script>
+    // Recherche en temps réel
+    document.getElementById('searchInput').addEventListener('input', function() {
+        var val = this.value.toLowerCase();
+        document.querySelectorAll('#questionsList .trow').forEach(function(row) {
+            row.style.display = row.dataset.texte.includes(val) ? '' : 'none';
+        });
+    });
+</script>
+
+</body>
+</html>

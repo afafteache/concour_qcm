@@ -87,7 +87,7 @@ def dashboard_admin(request):
 #  DASHBOARD CANDIDAT
 # ═══════════════════════════════════════════════════════════════════
 
-@login_required(login_url='login')
+@login_required(login_url='login_candidat')
 @role_required('candidat')
 def dashboard_candidat(request):
     now    = timezone.now()
@@ -136,7 +136,7 @@ def dashboard_candidat(request):
 #  PASSER UN EXAMEN
 # ═══════════════════════════════════════════════════════════════════
 
-@login_required(login_url='login')
+@login_required(login_url='login_candidat')
 @role_required('candidat')
 def examen_view(request, examen_id):
     now    = timezone.now()
@@ -188,7 +188,7 @@ def examen_view(request, examen_id):
 #  RÉSULTAT CANDIDAT
 # ═══════════════════════════════════════════════════════════════════
 
-@login_required(login_url='login')
+@login_required(login_url='login_candidat')
 @role_required('candidat')
 def resultat_view(request, examen_id):
     examen   = get_object_or_404(Examen, id=examen_id)
@@ -206,3 +206,38 @@ def resultat_view(request, examen_id):
         'pourcentage': pourcentage,
         'reussi'     : pourcentage >= 50,
     })
+
+
+# ═══════════════════════════════════════════════════════════════════
+#  DASHBOARD ENSEIGNANT
+# ═══════════════════════════════════════════════════════════════════
+
+@login_required(login_url='login')
+@role_required('enseignant')
+def dashboard_enseignant(request):
+    from questions.models import Question
+    now = timezone.now()
+
+    nb_questions  = Question.objects.filter(cree_par=request.user).count()
+    nb_total      = Question.objects.count()
+    nb_candidats  = Profil.objects.filter(role='candidat').count()
+    nb_sessions   = SessionConcours.objects.count()
+
+    mes_questions = Question.objects.filter(
+        cree_par=request.user
+    ).select_related('module').order_by('-date_creation')[:10]
+
+    sessions_actives = SessionConcours.objects.filter(
+        etat__in=['planifiee', 'en_cours']
+    ).select_related('concours').order_by('date_heure_debut')[:5]
+
+    context = {
+        'nb_questions'    : nb_questions,
+        'nb_total'        : nb_total,
+        'nb_candidats'    : nb_candidats,
+        'nb_sessions'     : nb_sessions,
+        'mes_questions'   : mes_questions,
+        'sessions_actives': sessions_actives,
+        'now'             : now,
+    }
+    return render(request, 'enseignant/dashboard_enseignant.html', context)
