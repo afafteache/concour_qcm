@@ -17,7 +17,7 @@ INSTALLED_APPS = [
 
     'accounts',
     'concours',
-    # 'questions',   ← Afaf
+    'questions',   # ← décommenté
     'examens',
     'resultats',
 ]
