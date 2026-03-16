@@ -1,0 +1,236 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart QCM — Créer un examen</title>
+    <link href="{% static 'vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/sb-admin-2.css' %}" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #f0f2f8; font-family: 'Nunito', sans-serif; display: flex; min-height: 100vh; }
+        .sidebar { width: 220px; flex-shrink: 0; background: #1a2a5e; display: flex; flex-direction: column; min-height: 100vh; position: fixed; top: 0; left: 0; z-index: 100; }
+        .sidebar-brand { padding: 22px 20px 18px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 10px; }
+        .sidebar-brand .brand-icon { width: 34px; height: 34px; border-radius: 8px; background: #4e73df; display: flex; align-items: center; justify-content: center; }
+        .sidebar-brand .brand-name { color: white; font-size: 15px; font-weight: 800; }
+        .sidebar-brand .brand-name span { color: #4e9df5; }
+        .sidebar-profile { padding: 18px 16px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-profile .avatar { width: 52px; height: 52px; border-radius: 50%; background: #4e73df; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; color: white; margin: 0 auto 10px; }
+        .sidebar-profile .name { color: white; font-size: 13px; font-weight: 700; text-align: center; }
+        .sidebar-profile .role { color: rgba(255,255,255,0.45); font-size: 11px; text-align: center; margin-bottom: 12px; }
+        .btn-new-question { display: flex; align-items: center; justify-content: center; gap: 7px; padding: 9px 14px; background: #4e73df; color: white; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; text-decoration: none; width: 100%; }
+        .btn-new-question:hover { background: #2e59d9; color: white; }
+        .sidebar-section { padding: 14px 12px 8px; }
+        .sidebar-section .section-label { color: rgba(255,255,255,0.35); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; padding: 0 10px; margin-bottom: 6px; display: block; }
+        .sidebar-section a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; color: rgba(255,255,255,0.65); text-decoration: none; font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+        .sidebar-section a:hover { background: rgba(255,255,255,0.08); color: white; }
+        .sidebar-section a.active { background: #4e73df; color: white; }
+        .sidebar-section a i { width: 16px; text-align: center; }
+        .sidebar-divider { border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 8px 16px; }
+        .main { margin-left: 220px; flex: 1; display: flex; flex-direction: column; }
+        .topbar { background: white; padding: 14px 28px; border-bottom: 1px solid #e3e6f0; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 99; }
+        .user-info { display: flex; align-items: center; gap: 10px; }
+        .uname { font-size: 13px; font-weight: 700; color: #2d3748; text-align: right; }
+        .urole { font-size: 11px; color: #a0aec0; text-align: right; }
+        .uavatar { width: 36px; height: 36px; border-radius: 50%; background: #4e73df; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: white; }
+        .content { padding: 24px 28px; flex: 1; }
+        .page-header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+        .page-header h1 { font-size: 20px; font-weight: 800; color: #2d3748; display: flex; align-items: center; gap: 10px; }
+        .page-header h1 i { color: #4e73df; }
+        .btn-back { display: flex; align-items: center; gap: 6px; padding: 8px 16px; border: 1px solid #e3e6f0; border-radius: 8px; background: white; color: #718096; font-size: 13px; font-weight: 600; text-decoration: none; }
+        .btn-back:hover { border-color: #4e73df; color: #4e73df; }
+        .form-card { background: white; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); padding: 28px; margin-bottom: 20px; }
+        .form-card h2 { font-size: 14px; font-weight: 800; color: #2d3748; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; border-bottom: 2px solid #f0f2f5; padding-bottom: 12px; }
+        .form-card h2 i { color: #4e73df; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 12px; font-weight: 700; color: #4a5568; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+        .form-control-custom { width: 100%; padding: 10px 14px; border: 1px solid #e3e6f0; border-radius: 8px; font-size: 14px; color: #2d3748; outline: none; transition: border 0.15s; font-family: inherit; }
+        .form-control-custom:focus { border-color: #4e73df; box-shadow: 0 0 0 3px rgba(78,115,223,0.1); }
+
+        /* SÉLECTION QUESTIONS */
+        .search-questions { width: 100%; padding: 10px 14px; border: 1px solid #e3e6f0; border-radius: 8px; font-size: 13px; outline: none; margin-bottom: 14px; font-family: inherit; }
+        .search-questions:focus { border-color: #4e73df; }
+        .questions-grid { display: flex; flex-direction: column; gap: 8px; max-height: 480px; overflow-y: auto; padding-right: 4px; }
+        .q-check-item { border: 2px solid #e3e6f0; border-radius: 10px; padding: 14px 16px; cursor: pointer; transition: all 0.15s; display: flex; align-items: flex-start; gap: 12px; }
+        .q-check-item:hover { border-color: #4e73df; background: #f8f9ff; }
+        .q-check-item.checked { border-color: #4e73df; background: #ebf0fc; }
+        .q-check-item input[type=checkbox] { width: 18px; height: 18px; margin-top: 1px; cursor: pointer; flex-shrink: 0; accent-color: #4e73df; }
+        .q-check-item .q-info { flex: 1; }
+        .q-check-item .q-texte { font-size: 13px; font-weight: 600; color: #2d3748; margin-bottom: 4px; }
+        .q-check-item .q-meta { font-size: 11px; color: #a0aec0; }
+        .q-check-item .q-bonne { font-size: 11px; color: #1cc88a; font-weight: 700; margin-top: 3px; }
+        .compteur { font-size: 13px; font-weight: 700; color: #4e73df; margin-bottom: 10px; }
+
+        /* BOUTONS */
+        .form-actions { display: flex; justify-content: space-between; align-items: center; }
+        .btn-cancel { padding: 10px 24px; border: 1px solid #e3e6f0; border-radius: 8px; background: white; color: #718096; font-size: 13px; font-weight: 700; text-decoration: none; }
+        .btn-send { padding: 12px 32px; background: #4e73df; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background 0.15s; }
+        .btn-send:hover { background: #2e59d9; }
+        .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; font-weight: 600; }
+        .alert-danger { background: #fff5f5; border: 1px solid #fc8181; color: #c53030; }
+        .alert-success { background: #f0fff4; border: 1px solid #9ae6b4; color: #276749; }
+
+        /* AUCUNE QUESTION */
+        .empty-qs { text-align: center; padding: 48px; color: #a0aec0; }
+        .empty-qs i { font-size: 2.5rem; display: block; margin-bottom: 14px; }
+        .empty-qs a { color: #4e73df; font-weight: 700; }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="sidebar-brand">
+        <div class="brand-icon"><i class="fas fa-brain" style="color:white;font-size:15px;"></i></div>
+        <div class="brand-name">SMART <span>QCM</span></div>
+    </div>
+    <div class="sidebar-profile">
+        <div class="avatar">{{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}</div>
+        <div class="name">{{ request.user.get_full_name }}</div>
+        <div class="role">Enseignant</div>
+        <a href="{% url 'question_ajouter' %}" class="btn-new-question">
+            <i class="fas fa-plus" style="font-size:11px;"></i> Nouvelle question
+        </a>
+    </div>
+    <div class="sidebar-section">
+        <span class="section-label">Navigation</span>
+        <a href="{% url 'dashboard_enseignant' %}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a href="{% url 'question_liste' %}"><i class="fas fa-question-circle"></i> Mes Questions</a>
+        <a href="{% url 'question_ajouter' %}"><i class="fas fa-plus-circle"></i> Ajouter une Question</a>
+        <a href="{% url 'examen_creer' %}" class="active"><i class="fas fa-file-alt"></i> Créer un Examen</a>
+        <a href="{% url 'mes_examens' %}"><i class="fas fa-list-alt"></i> Mes Examens</a>
+    </div>
+    <hr class="sidebar-divider">
+    <div class="sidebar-section">
+        <a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
+    </div>
+</div>
+
+<div class="main">
+    <div class="topbar">
+        <div style="font-size:13px; color:#a0aec0;">
+            <i class="fas fa-home mr-1"></i> Accueil &rsaquo;
+            <a href="{% url 'dashboard_enseignant' %}" style="color:#a0aec0;text-decoration:none;">Dashboard</a> &rsaquo;
+            <span style="color:#4e73df;font-weight:700;">Créer un examen</span>
+        </div>
+        <div class="user-info">
+            <div><div class="uname">{{ request.user.get_full_name }}</div><div class="urole">Enseignant</div></div>
+            <div class="uavatar">{{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}</div>
+        </div>
+    </div>
+
+    <div class="content">
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+
+        <div class="page-header">
+            <a href="{% url 'dashboard_enseignant' %}" class="btn-back"><i class="fas fa-arrow-left"></i> Retour</a>
+            <h1><i class="fas fa-file-alt"></i> Créer un Examen</h1>
+        </div>
+
+        <form method="POST" id="form-examen">
+            {% csrf_token %}
+
+            <!-- TITRE -->
+            <div class="form-card">
+                <h2><i class="fas fa-tag"></i> Informations de l'examen</h2>
+                <div class="form-group">
+                    <label>Titre de l'examen *</label>
+                    <input type="text" name="titre" class="form-control-custom"
+                        placeholder="Ex : Examen de Français — Session Mars 2026" required>
+                </div>
+            </div>
+
+            <!-- SÉLECTION QUESTIONS -->
+            <div class="form-card">
+                <h2><i class="fas fa-list-ul"></i> Sélectionner les questions</h2>
+
+                {% if questions %}
+                <div class="compteur" id="compteur">0 question(s) sélectionnée(s)</div>
+                <input type="text" class="search-questions" id="searchQ" placeholder="Rechercher une question...">
+
+                <div class="questions-grid" id="questionsGrid">
+                    {% for q in questions %}
+                    <div class="q-check-item" id="item-{{ q.id }}" data-texte="{{ q.texte|lower }}" onclick="toggleQ(this)">
+                        <input type="checkbox" name="questions_selectionnees" value="{{ q.id }}" id="chk-{{ q.id }}" onclick="event.stopPropagation()">
+                        <div class="q-info">
+                            <div class="q-texte">{{ q.texte|truncatechars:100 }}</div>
+                            <div class="q-meta">
+                                {% if q.module %}<span style="background:#ebf0fc;color:#4e73df;padding:2px 8px;border-radius:20px;font-weight:700;">{{ q.module.nom }}</span>{% endif %}
+                                {{ q.date_creation|date:"d/m/Y" }}
+                            </div>
+                            {% for c in q.choix_set.all %}
+                                {% if c.est_correct %}
+                                <div class="q-bonne"><i class="fas fa-check mr-1"></i>{{ c.texte|truncatechars:60 }}</div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                {% else %}
+                <div class="empty-qs">
+                    <i class="fas fa-inbox"></i>
+                    Vous n'avez pas encore créé de questions.<br><br>
+                    <a href="{% url 'question_ajouter' %}">+ Créer des questions d'abord</a>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- BOUTONS -->
+            {% if questions %}
+            <div class="form-actions">
+                <a href="{% url 'dashboard_enseignant' %}" class="btn-cancel">Annuler</a>
+                <button type="submit" class="btn-send">
+                    <i class="fas fa-paper-plane"></i> Envoyer à l'administrateur
+                </button>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<script>
+function toggleQ(item) {
+    const chk = item.querySelector('input[type=checkbox]');
+    chk.checked = !chk.checked;
+    item.classList.toggle('checked', chk.checked);
+    majCompteur();
+}
+
+// Sync checkbox click direct
+document.querySelectorAll('.q-check-item input[type=checkbox]').forEach(function(chk) {
+    chk.addEventListener('change', function() {
+        this.closest('.q-check-item').classList.toggle('checked', this.checked);
+        majCompteur();
+    });
+});
+
+function majCompteur() {
+    const n = document.querySelectorAll('.q-check-item input[type=checkbox]:checked').length;
+    document.getElementById('compteur').textContent = n + ' question(s) sélectionnée(s)';
+}
+
+// Recherche
+document.getElementById('searchQ') && document.getElementById('searchQ').addEventListener('input', function() {
+    var val = this.value.toLowerCase();
+    document.querySelectorAll('.q-check-item').forEach(function(item) {
+        item.style.display = item.dataset.texte.includes(val) ? '' : 'none';
+    });
+});
+
+// Validation
+document.getElementById('form-examen').addEventListener('submit', function(e) {
+    const n = document.querySelectorAll('.q-check-item input[type=checkbox]:checked').length;
+    if (n === 0) {
+        e.preventDefault();
+        alert('Veuillez sélectionner au moins une question.');
+    }
+});
+</script>
+</body>
+</html>

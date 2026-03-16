@@ -21,7 +21,7 @@ class Concours(models.Model):
     nombre_questions = models.PositiveIntegerField(default=20)
     duree_minutes    = models.PositiveIntegerField(default=60)
     cree_par         = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='concours_crees')
-    date_creation = models.DateTimeField(auto_now_add=True, null=True)
+    date_creation    = models.DateTimeField(auto_now_add=True, null=True)
 
     def __str__(self):
         return self.titre
@@ -46,6 +46,8 @@ class SessionConcours(models.Model):
     examen_lance     = models.BooleanField(default=False)
     date_lancement   = models.DateTimeField(null=True, blank=True)
     lance_par        = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='sessions_lancees')
+
+    # PAS de champ examen ici — la relation est définie dans examens.Examen.session
 
     def __str__(self):
         return f"{self.nom_session} — {self.concours.titre}"

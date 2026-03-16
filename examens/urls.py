@@ -2,18 +2,13 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    # Dashboard admin
-    path('admin/dashboard/', views.dashboard_admin, name='dashboard_admin'),
-
-    # Dashboard enseignant
-    path('enseignant/dashboard/', views.dashboard_enseignant, name='dashboard_enseignant'),
-
-    # Dashboard candidat
+    # Candidat
+    path('passer/<int:examen_id>/', views.examen_view, name='examen'),
+    path('resultat/<int:examen_id>/', views.resultat_view, name='resultat'),
     path('dashboard/', views.dashboard_candidat, name='dashboard_candidat'),
 
-    # Examen candidat
-    path('examen/<int:examen_id>/', views.examen_view, name='examen'),
-
-    # Résultat candidat
-    path('resultat/<int:examen_id>/', views.resultat_view, name='resultat'),
+    # Admin
+    path('admin/examens/', views.admin_examens, name='admin_examens'),
+    path('admin/examens/<int:examen_id>/valider/', views.admin_valider_examen, name='admin_valider_examen'),
+    path('admin/examens/<int:examen_id>/session/', views.creer_session_pour_examen, name='creer_session_pour_examen'),
 ]

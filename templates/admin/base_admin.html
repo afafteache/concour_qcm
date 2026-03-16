@@ -68,6 +68,17 @@
       </div>
     </li>
 
+    <!-- ══ NOUVEAU : Examens reçus ══ -->
+    <li class="nav-item {% block nav_examens %}{% endblock %}">
+      <a class="nav-link" href="{% url 'admin_examens' %}">
+        <i class="fas fa-fw fa-file-alt"></i>
+        <span>Examens reçus</span>
+        {% if nb_examens_nouveaux %}
+          <span class="badge badge-danger ml-1">{{ nb_examens_nouveaux }}</span>
+        {% endif %}
+      </a>
+    </li>
+
     <li class="nav-item {% block nav_candidats %}{% endblock %}">
       <a class="nav-link" href="{% url 'register' %}">
         <i class="fas fa-fw fa-user-plus"></i><span>Créer un compte</span>
@@ -85,7 +96,6 @@
       <button class="rounded-circle border-0" id="sidebarToggle"></button>
     </div>
   </ul>
-  <!-- ══ End Sidebar ══ -->
 
   <div id="content-wrapper" class="d-flex flex-column">
     <div id="content">
@@ -101,15 +111,13 @@
             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" data-toggle="dropdown">
               <span class="mr-2 d-none d-lg-inline text-gray-600 small">
                 {{ request.user.get_full_name }}
-                <small class="text-muted">({{ request.user.profil.role|title }})</small>
+                {% with profil=request.user.accounts_profil %}
+                <small class="text-muted">({{ profil.role|title }})</small>
+                {% endwith %}
               </span>
               <img class="img-profile rounded-circle" src="{% static 'img/undraw_profile.svg' %}" style="width:32px;height:32px;">
             </a>
             <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in">
-              <div class="dropdown-item-text small text-muted px-4 py-2">
-                CIN : {{ request.user.profil.cin }}
-              </div>
-              <div class="dropdown-divider"></div>
               <a class="dropdown-item text-danger" href="{% url 'logout' %}">
                 <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2"></i>Déconnexion
               </a>

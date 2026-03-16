@@ -1,54 +1,29 @@
-{% load static %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mon Espace – Smart QCM</title>
-
+  {% load static %}
   <link href="{% static 'vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet">
   <link href="{% static 'css/sb-admin-2.css' %}" rel="stylesheet">
-
   <style>
-    body {
-      background: #f4f6fc;
-    }
-
-    .candidat-header {
-      background: linear-gradient(135deg, #1cc88a, #13855c);
-      border-radius: .5rem;
-    }
-
-    .exam-card {
-      border-left: 4px solid #1cc88a;
-      transition: transform .2s ease;
-    }
-
-    .exam-card:hover {
-      transform: translateY(-3px);
-    }
-
-    .countdown-badge {
-      font-size: 1.4rem;
-      font-weight: 700;
-      font-family: monospace;
-      color: #e74a3b;
-    }
-
-    .btn-commencer-disabled {
-      cursor: not-allowed;
-    }
+    body { background: #f4f6fc; }
+    .candidat-header { background: linear-gradient(135deg,#1cc88a,#13855c); border-radius: .5rem; }
+    .exam-card { border-left: 4px solid #1cc88a; transition: transform .2s; }
+    .exam-card:hover { transform: translateY(-3px); }
+    .countdown-badge { font-size: 1.4rem; font-weight: 700; font-family: monospace; color: #e74a3b; }
+    .btn-commencer-disabled { cursor: not-allowed; }
   </style>
 </head>
 <body>
 
-<!-- TOPBAR candidat -->
+<!-- TOPBAR -->
 <nav class="navbar navbar-light bg-white shadow-sm mb-4">
   <div class="container-fluid">
     <span class="navbar-brand font-weight-bold text-primary">
       <i class="fas fa-brain mr-2"></i>Smart QCM
     </span>
-
     <div class="d-flex align-items-center">
       <span class="text-gray-600 small mr-3">
         <i class="fas fa-user-circle mr-1"></i>{{ request.user.get_full_name }}
@@ -67,11 +42,11 @@
     <div class="card-body py-4 px-5">
       <div class="row align-items-center">
         <div class="col-auto">
-          <div style="width:70px;height:70px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2rem;">
+          <div style="width:70px;height:70px;background:rgba(255,255,255,.2);border-radius:50%;
+                      display:flex;align-items:center;justify-content:center;font-size:2rem;">
             <i class="fas fa-user-graduate"></i>
           </div>
         </div>
-
         <div class="col">
           <h4 class="font-weight-bold mb-1">{{ request.user.get_full_name }}</h4>
           <div class="mb-1">
@@ -82,67 +57,50 @@
               <i class="fas fa-user-tag mr-1"></i>Candidat
             </span>
           </div>
-
           <small class="text-white-50">
             <i class="fas fa-envelope mr-1"></i>
-            {% if request.user.email %}
-              {{ request.user.email }}
-            {% else %}
-              Aucun email renseigné
-            {% endif %}
+            {{ request.user.email|default:"Aucun email renseigné" }}
           </small>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="row">
-
-    <!-- Examens disponibles -->
+  <!-- Examens disponibles (pleine largeur) -->
+  <div class="row justify-content-center">
     <div class="col-lg-8">
       <div class="card shadow mb-4">
         <div class="card-header py-3" style="background:#1cc88a;">
           <h6 class="m-0 font-weight-bold text-white">
-            <i class="fas fa-file-alt mr-2"></i>Examens disponibles
+            <i class="fas fa-file-alt mr-2"></i>Examen disponible
           </h6>
         </div>
-
         <div class="card-body">
 
           {% if examens_disponibles %}
             {% for examen in examens_disponibles %}
               {% if examen.id not in examens_passes_ids %}
-                <div class="card exam-card shadow-sm mb-3">
-                  <div class="card-body">
-                    <div class="row align-items-center">
-                      <div class="col">
-                        <h6 class="font-weight-bold text-gray-800 mb-1">{{ examen.titre }}</h6>
-                        <div class="text-muted small">
-                          <i class="fas fa-clock mr-1"></i>
-                          Durée :
-                          {% if examen.session and examen.session.duree_minutes %}
-                            {{ examen.session.duree_minutes }} min
-                          {% else %}
-                            Non définie
-                          {% endif %}
-                          &nbsp;|&nbsp;
-                          <i class="fas fa-calendar mr-1"></i>
-                          {% if examen.session and examen.session.date_heure_fin %}
-                            Fin : {{ examen.session.date_heure_fin|date:"d/m/Y H:i" }}
-                          {% else %}
-                            Session non définie
-                          {% endif %}
-                        </div>
+              <div class="card exam-card shadow-sm mb-3">
+                <div class="card-body">
+                  <div class="row align-items-center">
+                    <div class="col">
+                      <h6 class="font-weight-bold text-gray-800 mb-1">{{ examen.titre }}</h6>
+                      <div class="text-muted small">
+                        <i class="fas fa-clock mr-1"></i>
+                        Durée : {{ examen.session.duree_minutes }} min
+                        &nbsp;|&nbsp;
+                        <i class="fas fa-calendar mr-1"></i>
+                        Fin : {{ examen.session.date_heure_fin|date:"d/m/Y H:i" }}
                       </div>
-
-                      <div class="col-auto">
-                        <a href="{% url 'examen' examen.id %}" class="btn btn-success btn-lg px-4 shadow-sm">
-                          <i class="fas fa-play mr-2"></i>Commencer l'examen
-                        </a>
-                      </div>
+                    </div>
+                    <div class="col-auto">
+                      <a href="{% url 'examen' examen.id %}" class="btn btn-success btn-lg px-4 shadow-sm">
+                        <i class="fas fa-play mr-2"></i>Commencer l'examen
+                      </a>
                     </div>
                   </div>
                 </div>
+              </div>
               {% endif %}
             {% endfor %}
 
@@ -150,32 +108,20 @@
             <div class="text-center py-4">
               <i class="fas fa-hourglass-half fa-3x text-warning mb-3"></i>
               <h6 class="font-weight-bold text-gray-700 mb-2">Examen prévu :</h6>
-
-              <p class="text-muted mb-1">
-                {% if session_prochaine.concours %}
-                  {{ session_prochaine.concours.titre }}
-                {% else %}
-                  Session à venir
-                {% endif %}
-              </p>
-
+              <p class="text-muted mb-1">{{ session_prochaine.nom_session }}</p>
               <p class="text-muted small mb-3">
-                Début :
-                <strong>{{ session_prochaine.date_heure_debut|date:"d/m/Y à H:i" }}</strong>
+                Début : <strong>{{ session_prochaine.date_heure_debut|date:"d/m/Y à H:i" }}</strong>
               </p>
-
               <div class="mb-3">
                 <div class="text-muted small mb-1">Temps restant avant le début</div>
                 <div class="countdown-badge" id="countdown-candidat">--:--:--</div>
               </div>
-
               <button class="btn btn-secondary btn-lg px-5 btn-commencer-disabled" disabled>
                 <i class="fas fa-lock mr-2"></i>Examen pas encore lancé
               </button>
-
               <div class="text-muted small mt-2">
                 <i class="fas fa-info-circle mr-1"></i>
-                Le bouton sera activé lorsque l’administrateur lancera l’examen.
+                Le bouton sera activé lorsque l'administrateur lancera l'examen.
               </div>
             </div>
 
@@ -189,89 +135,29 @@
         </div>
       </div>
     </div>
-
-    <!-- Mes résultats -->
-    <div class="col-lg-4">
-      <div class="card shadow mb-4">
-        <div class="card-header py-3">
-          <h6 class="m-0 font-weight-bold text-primary">
-            <i class="fas fa-chart-bar mr-2"></i>Mes résultats
-          </h6>
-        </div>
-
-        <div class="card-body p-0">
-          {% if mes_resultats %}
-            {% for r in mes_resultats %}
-              <div class="px-4 py-3 border-bottom">
-                <div class="font-weight-bold text-gray-800 small">{{ r.examen.titre }}</div>
-
-                <div class="d-flex align-items-center mt-1">
-                  <div class="progress flex-grow-1 mr-2" style="height:6px;">
-                    <div class="progress-bar {% if r.reussi %}bg-success{% else %}bg-danger{% endif %}"
-                         style="width: {{ r.pourcentage }}%;"></div>
-                  </div>
-                  <span class="small font-weight-bold">{{ r.pourcentage }}%</span>
-                </div>
-
-                <div class="text-muted" style="font-size:.72rem;">
-                  Score : {{ r.score }}/{{ r.total_questions }}
-                  &nbsp;|&nbsp;
-                  {% if r.reussi %}
-                    <span class="text-success">Réussi</span>
-                  {% else %}
-                    <span class="text-danger">Échoué</span>
-                  {% endif %}
-                </div>
-
-                <a href="{% url 'resultat' r.examen.id %}" class="btn btn-outline-primary btn-xs mt-1" style="font-size:.75rem;padding:.2rem .6rem;">
-                  Voir détail
-                </a>
-              </div>
-            {% endfor %}
-          {% else %}
-            <div class="text-center text-muted py-4">
-              <i class="fas fa-clipboard-list fa-2x mb-2"></i>
-              <p class="small">Aucun résultat pour le moment.</p>
-            </div>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-
   </div>
+
 </div>
 
 <script src="{% static 'vendor/jquery/jquery.js' %}"></script>
 <script src="{% static 'vendor/bootstrap/js/bootstrap.js' %}"></script>
-
 <script>
-(function () {
+(function(){
   const secondes = {{ secondes_avant|default:0 }};
   const el = document.getElementById('countdown-candidat');
-
   if (!el || secondes <= 0) return;
-
   let reste = secondes;
-
-  function tick() {
-    if (reste < 0) {
-      location.reload();
-      return;
-    }
-
-    const h = String(Math.floor(reste / 3600)).padStart(2, '0');
-    const m = String(Math.floor((reste % 3600) / 60)).padStart(2, '0');
-    const s = String(reste % 60).padStart(2, '0');
-
-    el.textContent = h + ':' + m + ':' + s;
+  function tick(){
+    if(reste < 0){ location.reload(); return; }
+    const h = String(Math.floor(reste/3600)).padStart(2,'0');
+    const m = String(Math.floor((reste%3600)/60)).padStart(2,'0');
+    const s = String(reste%60).padStart(2,'0');
+    el.textContent = h+':'+m+':'+s;
     reste--;
-
     setTimeout(tick, 1000);
   }
-
   tick();
 })();
 </script>
-
 </body>
 </html>

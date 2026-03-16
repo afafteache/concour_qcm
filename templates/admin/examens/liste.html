@@ -1,0 +1,144 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Smart QCM — Examens reçus</title>
+    <link href="{% static 'vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/sb-admin-2.css' %}" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #f0f2f8; font-family: 'Nunito', sans-serif; display: flex; min-height: 100vh; }
+        .sidebar { width: 220px; flex-shrink: 0; background: #1a2a5e; display: flex; flex-direction: column; min-height: 100vh; position: fixed; top: 0; left: 0; z-index: 100; }
+        .sidebar-brand { padding: 22px 20px 18px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 10px; }
+        .brand-icon { width: 34px; height: 34px; border-radius: 8px; background: #4e73df; display: flex; align-items: center; justify-content: center; }
+        .brand-name { color: white; font-size: 15px; font-weight: 800; }
+        .brand-name span { color: #4e9df5; }
+        .sidebar-section { padding: 14px 12px 8px; }
+        .section-label { color: rgba(255,255,255,0.35); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; padding: 0 10px; margin-bottom: 6px; display: block; }
+        .sidebar-section a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; color: rgba(255,255,255,0.65); text-decoration: none; font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+        .sidebar-section a:hover { background: rgba(255,255,255,0.08); color: white; }
+        .sidebar-section a.active { background: #4e73df; color: white; }
+        .sidebar-section a i { width: 16px; text-align: center; }
+        .sidebar-divider { border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 8px 16px; }
+        .main { margin-left: 220px; flex: 1; display: flex; flex-direction: column; }
+        .topbar { background: white; padding: 14px 28px; border-bottom: 1px solid #e3e6f0; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 99; }
+        .user-info { display: flex; align-items: center; gap: 10px; }
+        .uname { font-size: 13px; font-weight: 700; color: #2d3748; }
+        .urole { font-size: 11px; color: #a0aec0; }
+        .uavatar { width: 36px; height: 36px; border-radius: 50%; background: #4e73df; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: white; }
+        .content { padding: 24px 28px; }
+        .page-header { margin-bottom: 24px; }
+        .page-header h1 { font-size: 20px; font-weight: 800; color: #2d3748; display: flex; align-items: center; gap: 10px; }
+        .page-header h1 i { color: #4e73df; }
+        .exam-card { background: white; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); padding: 20px 24px; margin-bottom: 14px; border-left: 5px solid; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+        .exam-card.envoye { border-color: #f6c23e; }
+        .exam-card.valide { border-color: #1cc88a; }
+        .exam-card.brouillon { border-color: #a0aec0; }
+        .exam-titre { font-size: 15px; font-weight: 800; color: #2d3748; margin-bottom: 5px; }
+        .exam-meta { font-size: 12px; color: #a0aec0; display: flex; flex-wrap: wrap; gap: 14px; margin-top: 4px; }
+        .badge-statut { padding: 5px 14px; border-radius: 50px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+        .badge-statut.envoye { background: #fef9ec; color: #d4a017; border: 1px solid #f6c23e; }
+        .badge-statut.valide { background: #e6fff4; color: #1cc88a; border: 1px solid #1cc88a; }
+        .badge-statut.brouillon { background: #f0f2f5; color: #718096; }
+        .btn-valider { padding: 8px 18px; background: #1cc88a; color: white; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; text-decoration: none; }
+        .btn-valider:hover { background: #17a673; color: white; }
+        .btn-session { padding: 8px 18px; background: #4e73df; color: white; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; text-decoration: none; }
+        .btn-session:hover { background: #2e59d9; color: white; }
+        .actions-col { display: flex; gap: 8px; flex-shrink: 0; align-items: center; }
+        .empty { text-align: center; padding: 60px; color: #a0aec0; background: white; border-radius: 12px; }
+        .empty i { font-size: 2.5rem; display: block; margin-bottom: 14px; }
+        .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; font-weight: 600; }
+        .alert-success { background: #f0fff4; border: 1px solid #9ae6b4; color: #276749; }
+        .alert-danger { background: #fff5f5; border: 1px solid #fc8181; color: #c53030; }
+        .nb-new { background: #e74a3b; color: white; border-radius: 50px; padding: 2px 8px; font-size: 11px; font-weight: 700; margin-left: 6px; }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="sidebar-brand">
+        <div class="brand-icon"><i class="fas fa-brain" style="color:white;font-size:15px;"></i></div>
+        <div class="brand-name">SMART <span>QCM</span></div>
+    </div>
+    <div class="sidebar-section">
+        <span class="section-label">Gestion</span>
+        <a href="{% url 'dashboard_admin' %}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a href="{% url 'admin_examens' %}" class="active">
+            <i class="fas fa-file-alt"></i> Examens
+            {% if nb_nouveaux > 0 %}<span class="nb-new">{{ nb_nouveaux }}</span>{% endif %}
+        </a>
+        <a href="{% url 'session_liste' %}"><i class="fas fa-calendar-alt"></i> Sessions</a>
+        <a href="{% url 'resultats_liste' %}"><i class="fas fa-chart-bar"></i> Résultats</a>
+    </div>
+    <hr class="sidebar-divider">
+    <div class="sidebar-section">
+        <a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
+    </div>
+</div>
+
+<div class="main">
+    <div class="topbar">
+        <div style="font-size:13px;color:#a0aec0;">
+            <i class="fas fa-home mr-1"></i>
+            <a href="{% url 'dashboard_admin' %}" style="color:#a0aec0;text-decoration:none;">Dashboard</a> &rsaquo;
+            <span style="color:#4e73df;font-weight:700;">Examens reçus</span>
+        </div>
+        <div class="user-info">
+            <div><div class="uname">{{ request.user.get_full_name }}</div><div class="urole">Administrateur</div></div>
+            <div class="uavatar">{{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}</div>
+        </div>
+    </div>
+
+    <div class="content">
+        {% if messages %}{% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}{% endif %}
+
+        <div class="page-header">
+            <h1><i class="fas fa-file-alt"></i> Examens envoyés par les enseignants</h1>
+        </div>
+
+        {% for examen in examens %}
+        <div class="exam-card {{ examen.statut }}">
+            <div style="flex:1;">
+                <div class="exam-titre">{{ examen.titre }}</div>
+                <div class="exam-meta">
+                    <span><i class="fas fa-user-tie mr-1"></i>{{ examen.cree_par.get_full_name }}</span>
+                    <span><i class="fas fa-question-circle mr-1"></i>{{ examen.questions.count }} question(s)</span>
+                    <span><i class="fas fa-calendar mr-1"></i>{{ examen.date_creation|date:"d/m/Y à H:i" }}</span>
+                    {% if examen.session %}
+                    <span style="color:#1cc88a;font-weight:700;"><i class="fas fa-link mr-1"></i>{{ examen.session.nom_session }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="actions-col">
+                <span class="badge-statut {{ examen.statut }}">
+                    {% if examen.statut == 'envoye' %}<i class="fas fa-paper-plane mr-1"></i> Reçu
+                    {% elif examen.statut == 'valide' %}<i class="fas fa-check mr-1"></i> Validé
+                    {% else %}<i class="fas fa-pencil-alt mr-1"></i> Brouillon{% endif %}
+                </span>
+                {% if examen.statut == 'envoye' %}
+                <form method="POST" action="{% url 'admin_valider_examen' examen.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-valider"><i class="fas fa-check mr-1"></i> Valider</button>
+                </form>
+                {% endif %}
+                {% if examen.statut == 'valide' and not examen.session %}
+                <a href="{% url 'creer_session_pour_examen' examen.id %}" class="btn-session">
+                    <i class="fas fa-calendar-plus mr-1"></i> Créer une session
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty">
+            <i class="fas fa-inbox"></i>
+            Aucun examen reçu pour le moment.<br>
+            <small>Les examens envoyés par les enseignants apparaîtront ici.</small>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+</body>
+</html>

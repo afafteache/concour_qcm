@@ -9,26 +9,31 @@ from resultats.models import Resultat
 from .models import Examen
 
 
-# ═══════════════════════════════════════════════════════════════════
+def get_profil(user):
+    return Profil.objects.filter(user=user).first()
+
+
+def get_session_de_examen(examen):
+    return SessionConcours.objects.filter(examen=examen).first()
+
+
+# ═══════════════════════════════════════════════════════
 #  DASHBOARD ADMIN
-# ═══════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════
 
 @login_required(login_url='login')
 @role_required('admin', 'enseignant')
 def dashboard_admin(request):
     now = timezone.now()
-
     nb_concours  = Concours.objects.count()
-    nb_modules   = Module.objects.count()
     nb_candidats = Profil.objects.filter(role='candidat').count()
     nb_sessions  = SessionConcours.objects.count()
-    nb_examens   = Examen.objects.count()
     nb_resultats = Resultat.objects.count()
 
     session_active = (
         SessionConcours.objects
         .filter(etat__in=['planifiee', 'en_cours'])
-        .select_related('concours', 'concours__module')
+        .select_related('concours')
         .order_by('date_heure_debut')
         .first()
     )
@@ -56,42 +61,107 @@ def dashboard_admin(request):
             total_q = examen_actif.questions.count()
         except Exception:
             total_q = 0
-        for r in Resultat.objects.filter(examen=examen_actif).select_related('candidat', 'candidat__profil'):
+        for r in Resultat.objects.filter(examen=examen_actif).select_related('candidat'):
             pct = round(r.score / total_q * 100) if total_q > 0 else 0
+            profil_c = get_profil(r.candidat)
             candidats_suivi.append({
-                'nom'        : r.candidat.get_full_name(),
-                'cin'        : r.candidat.profil.cin,
-                'score'      : r.score,
-                'total'      : total_q,
+                'nom': r.candidat.get_full_name(),
+                'cin': profil_c.cin if profil_c else '—',
+                'score': r.score,
+                'total': total_q,
                 'pourcentage': pct,
             })
 
-    context = {
-        'nb_concours'          : nb_concours,
-        'nb_modules'           : nb_modules,
-        'nb_candidats'         : nb_candidats,
-        'nb_sessions'          : nb_sessions,
-        'nb_examens'           : nb_examens,
-        'nb_resultats'         : nb_resultats,
-        'session_active'       : session_active,
-        'examen_actif'         : examen_actif,
-        'peut_lancer'          : peut_lancer,
-        'secondes_avant_debut' : secondes_avant_debut,
-        'candidats_suivi'      : candidats_suivi,
-        'now'                  : now,
-    }
-    return render(request, 'admin/dashboard_admin.html', context)
+    return render(request, 'admin/dashboard_admin.html', {
+        'nb_concours': nb_concours,
+        'nb_candidats': nb_candidats,
+        'nb_sessions': nb_sessions,
+        'nb_resultats': nb_resultats,
+        'session_active': session_active,
+        'examen_actif': examen_actif,
+        'peut_lancer': peut_lancer,
+        'secondes_avant_debut': secondes_avant_debut,
+        'candidats_suivi': candidats_suivi,
+        'now': now,
+    })
 
 
-# ═══════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════
+#  ADMIN — GESTION EXAMENS
+# ═══════════════════════════════════════════════════════
+
+@login_required(login_url='login')
+@role_required('admin')
+def admin_examens(request):
+    examens = Examen.objects.select_related('cree_par').prefetch_related('questions').order_by('-date_creation')
+    nb_nouveaux = examens.filter(statut='envoye').count()
+    return render(request, 'admin/examens/liste.html', {
+        'examens': examens,
+        'nb_nouveaux': nb_nouveaux,
+    })
+
+
+@login_required(login_url='login')
+@role_required('admin')
+def admin_valider_examen(request, examen_id):
+    examen = get_object_or_404(Examen, id=examen_id)
+    if request.method == 'POST':
+        examen.statut = 'valide'
+        examen.actif = True
+        examen.save()
+        messages.success(request, f'L\'examen "{examen.titre}" a été validé.')
+    return redirect('admin_examens')
+
+
+@login_required(login_url='login')
+@role_required('admin')
+def creer_session_pour_examen(request, examen_id):
+    examen = get_object_or_404(Examen, id=examen_id, statut='valide')
+    concours_list = Concours.objects.all()
+
+    if request.method == 'POST':
+        nom_session  = request.POST.get('nom_session', '').strip()
+        concours_id  = request.POST.get('concours')
+        date_debut   = request.POST.get('date_heure_debut')
+        date_fin     = request.POST.get('date_heure_fin')
+        duree        = request.POST.get('duree_minutes', 60)
+
+        if not nom_session or not concours_id or not date_debut or not date_fin:
+            messages.error(request, 'Veuillez remplir tous les champs.')
+        else:
+            try:
+                concours = Concours.objects.get(id=concours_id)
+                session = SessionConcours.objects.create(
+                    nom_session=nom_session,
+                    concours=concours,
+                    date_heure_debut=date_debut,
+                    date_heure_fin=date_fin,
+                    duree_minutes=int(duree),
+                    etat='planifiee',
+                    lance_par=request.user,
+                )
+                examen.session = session
+                examen.save()
+                messages.success(request, f'Session "{nom_session}" créée et liée à l\'examen.')
+                return redirect('admin_examens')
+            except Exception as e:
+                messages.error(request, f'Erreur : {e}')
+
+    return render(request, 'admin/sessions/creer_pour_examen.html', {
+        'examen': examen,
+        'concours_list': concours_list,
+    })
+
+
+# ═══════════════════════════════════════════════════════
 #  DASHBOARD CANDIDAT
-# ═══════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════
 
 @login_required(login_url='login_candidat')
 @role_required('candidat')
 def dashboard_candidat(request):
     now    = timezone.now()
-    profil = request.user.profil
+    profil = get_profil(request.user)
 
     sessions_ouvertes = SessionConcours.objects.filter(
         examen_lance=True,
@@ -117,46 +187,43 @@ def dashboard_candidat(request):
         diff = session_prochaine.date_heure_debut - now
         secondes_avant = max(int(diff.total_seconds()), 0)
 
-    mes_resultats      = Resultat.objects.filter(candidat=request.user).select_related('examen').order_by('-date_passage')
+    mes_resultats = Resultat.objects.filter(candidat=request.user).select_related('examen').order_by('-date_passage')
     examens_passes_ids = list(mes_resultats.values_list('examen_id', flat=True))
 
-    context = {
-        'profil'             : profil,
+    return render(request, 'candidat/dashboard_candidat.html', {
+        'profil': profil,
         'examens_disponibles': examens_disponibles,
-        'mes_resultats'      : mes_resultats,
-        'examens_passes_ids' : examens_passes_ids,
-        'session_prochaine'  : session_prochaine,
-        'secondes_avant'     : secondes_avant,
-        'now'                : now,
-    }
-    return render(request, 'candidat/dashboard_candidat.html', context)
+        'mes_resultats': mes_resultats,
+        'examens_passes_ids': examens_passes_ids,
+        'session_prochaine': session_prochaine,
+        'secondes_avant': secondes_avant,
+        'now': now,
+    })
 
 
-# ═══════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════
 #  PASSER UN EXAMEN
-# ═══════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════
 
 @login_required(login_url='login_candidat')
 @role_required('candidat')
 def examen_view(request, examen_id):
     now    = timezone.now()
     examen = get_object_or_404(Examen, id=examen_id)
+    session = get_session_de_examen(examen)
 
-    if examen.session:
-        if not examen.session.examen_lance:
+    if session:
+        if not session.examen_lance:
             messages.error(request, "L'examen n'a pas encore été lancé.")
             return redirect('dashboard_candidat')
-        if now > examen.session.date_heure_fin:
+        if now > session.date_heure_fin:
             messages.error(request, "Le temps de cet examen est écoulé.")
             return redirect('dashboard_candidat')
 
     if Resultat.objects.filter(candidat=request.user, examen=examen).exists():
         return redirect('resultat', examen_id=examen_id)
 
-    try:
-        questions = examen.questions.prefetch_related('choix_set').all()
-    except Exception:
-        questions = []
+    questions = examen.questions.prefetch_related('choix_set').all()
 
     if request.method == 'POST':
         score = 0
@@ -172,72 +239,53 @@ def examen_view(request, examen_id):
         Resultat.objects.create(candidat=request.user, examen=examen, score=score)
         return redirect('resultat', examen_id=examen_id)
 
-    if examen.session:
-        duree_restante = max(int((examen.session.date_heure_fin - now).total_seconds()), 0)
+    if session:
+        duree_restante = max(int((session.date_heure_fin - now).total_seconds()), 0)
     else:
         duree_restante = 3600
 
     return render(request, 'candidat/examen.html', {
-        'examen'        : examen,
-        'questions'     : questions,
+        'examen': examen,
+        'questions': questions,
         'duree_restante': duree_restante,
     })
 
 
-# ═══════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════
 #  RÉSULTAT CANDIDAT
-# ═══════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════
 
 @login_required(login_url='login_candidat')
 @role_required('candidat')
 def resultat_view(request, examen_id):
     examen   = get_object_or_404(Examen, id=examen_id)
     resultat = get_object_or_404(Resultat, candidat=request.user, examen=examen)
-    try:
-        total = examen.questions.count()
-    except Exception:
-        total = 0
+    total    = examen.questions.count()
     pourcentage = round((resultat.score / total * 100), 1) if total > 0 else 0
 
     return render(request, 'candidat/resultat.html', {
-        'examen'     : examen,
-        'resultat'   : resultat,
-        'total'      : total,
+        'examen': examen,
+        'resultat': resultat,
+        'total': total,
         'pourcentage': pourcentage,
-        'reussi'     : pourcentage >= 50,
+        'reussi': pourcentage >= 50,
     })
 
 
-# ═══════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════
 #  DASHBOARD ENSEIGNANT
-# ═══════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════
 
 @login_required(login_url='login')
 @role_required('enseignant')
 def dashboard_enseignant(request):
     from questions.models import Question
-    now = timezone.now()
+    questions    = Question.objects.filter(cree_par=request.user).select_related('module').order_by('-date_creation')
+    nb_questions = questions.count()
+    examens      = Examen.objects.filter(cree_par=request.user)
 
-    nb_questions  = Question.objects.filter(cree_par=request.user).count()
-    nb_total      = Question.objects.count()
-    nb_candidats  = Profil.objects.filter(role='candidat').count()
-    nb_sessions   = SessionConcours.objects.count()
-
-    mes_questions = Question.objects.filter(
-        cree_par=request.user
-    ).select_related('module').order_by('-date_creation')[:10]
-
-    sessions_actives = SessionConcours.objects.filter(
-        etat__in=['planifiee', 'en_cours']
-    ).select_related('concours').order_by('date_heure_debut')[:5]
-
-    context = {
-        'nb_questions'    : nb_questions,
-        'nb_total'        : nb_total,
-        'nb_candidats'    : nb_candidats,
-        'nb_sessions'     : nb_sessions,
-        'mes_questions'   : mes_questions,
-        'sessions_actives': sessions_actives,
-        'now'             : now,
-    }
-    return render(request, 'enseignant/dashboard_enseignant.html', context)
+    return render(request, 'enseignant/dashboard_enseignant.html', {
+        'questions': questions,
+        'nb_questions': nb_questions,
+        'examens': examens,
+    })

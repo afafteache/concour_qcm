@@ -1,0 +1,158 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Smart QCM — Créer une session</title>
+    <link href="{% static 'vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/sb-admin-2.css' %}" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #f0f2f8; font-family: 'Nunito', sans-serif; display: flex; min-height: 100vh; }
+        .sidebar { width: 220px; flex-shrink: 0; background: #1a2a5e; display: flex; flex-direction: column; min-height: 100vh; position: fixed; top: 0; left: 0; z-index: 100; }
+        .sidebar-brand { padding: 22px 20px 18px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 10px; }
+        .brand-icon { width: 34px; height: 34px; border-radius: 8px; background: #4e73df; display: flex; align-items: center; justify-content: center; }
+        .brand-name { color: white; font-size: 15px; font-weight: 800; }
+        .brand-name span { color: #4e9df5; }
+        .sidebar-section { padding: 14px 12px 8px; }
+        .section-label { color: rgba(255,255,255,0.35); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; padding: 0 10px; margin-bottom: 6px; display: block; }
+        .sidebar-section a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; color: rgba(255,255,255,0.65); text-decoration: none; font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+        .sidebar-section a:hover { background: rgba(255,255,255,0.08); color: white; }
+        .sidebar-section a.active { background: #4e73df; color: white; }
+        .sidebar-section a i { width: 16px; text-align: center; }
+        .sidebar-divider { border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 8px 16px; }
+        .main { margin-left: 220px; flex: 1; display: flex; flex-direction: column; }
+        .topbar { background: white; padding: 14px 28px; border-bottom: 1px solid #e3e6f0; display: flex; justify-content: space-between; align-items: center; }
+        .user-info { display: flex; align-items: center; gap: 10px; }
+        .uname { font-size: 13px; font-weight: 700; color: #2d3748; }
+        .urole { font-size: 11px; color: #a0aec0; }
+        .uavatar { width: 36px; height: 36px; border-radius: 50%; background: #4e73df; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: white; }
+        .content { padding: 24px 28px; max-width: 700px; }
+        .page-header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+        .page-header h1 { font-size: 20px; font-weight: 800; color: #2d3748; display: flex; align-items: center; gap: 10px; }
+        .page-header h1 i { color: #4e73df; }
+        .btn-back { display: flex; align-items: center; gap: 6px; padding: 8px 16px; border: 1px solid #e3e6f0; border-radius: 8px; background: white; color: #718096; font-size: 13px; font-weight: 600; text-decoration: none; }
+        .btn-back:hover { border-color: #4e73df; color: #4e73df; }
+        .examen-info { background: #ebf0fc; border-radius: 10px; padding: 16px 20px; margin-bottom: 24px; border-left: 4px solid #4e73df; }
+        .examen-info .ei-titre { font-size: 15px; font-weight: 800; color: #2d3748; margin-bottom: 4px; }
+        .examen-info .ei-meta { font-size: 12px; color: #718096; }
+        .form-card { background: white; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); padding: 28px; margin-bottom: 20px; }
+        .form-card h2 { font-size: 14px; font-weight: 800; color: #2d3748; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; border-bottom: 2px solid #f0f2f5; padding-bottom: 12px; }
+        .form-card h2 i { color: #4e73df; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 12px; font-weight: 700; color: #4a5568; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+        .form-control-custom { width: 100%; padding: 10px 14px; border: 1px solid #e3e6f0; border-radius: 8px; font-size: 13px; color: #2d3748; outline: none; transition: border 0.15s; font-family: inherit; }
+        .form-control-custom:focus { border-color: #4e73df; box-shadow: 0 0 0 3px rgba(78,115,223,0.1); }
+        .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .form-actions { display: flex; justify-content: space-between; align-items: center; }
+        .btn-cancel { padding: 10px 24px; border: 1px solid #e3e6f0; border-radius: 8px; background: white; color: #718096; font-size: 13px; font-weight: 700; text-decoration: none; }
+        .btn-save { padding: 12px 32px; background: #4e73df; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        .btn-save:hover { background: #2e59d9; }
+        .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; font-weight: 600; }
+        .alert-danger { background: #fff5f5; border: 1px solid #fc8181; color: #c53030; }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="sidebar-brand">
+        <div class="brand-icon"><i class="fas fa-brain" style="color:white;font-size:15px;"></i></div>
+        <div class="brand-name">SMART <span>QCM</span></div>
+    </div>
+    <div class="sidebar-section">
+        <span class="section-label">Gestion</span>
+        <a href="{% url 'dashboard_admin' %}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a href="{% url 'admin_examens' %}" class="active"><i class="fas fa-file-alt"></i> Examens</a>
+        <a href="{% url 'session_liste' %}"><i class="fas fa-calendar-alt"></i> Sessions</a>
+        <a href="{% url 'resultats_liste' %}"><i class="fas fa-chart-bar"></i> Résultats</a>
+    </div>
+    <hr class="sidebar-divider">
+    <div class="sidebar-section">
+        <a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
+    </div>
+</div>
+
+<div class="main">
+    <div class="topbar">
+        <div style="font-size:13px;color:#a0aec0;">
+            <i class="fas fa-home mr-1"></i>
+            <a href="{% url 'dashboard_admin' %}" style="color:#a0aec0;text-decoration:none;">Dashboard</a> &rsaquo;
+            <a href="{% url 'admin_examens' %}" style="color:#a0aec0;text-decoration:none;">Examens</a> &rsaquo;
+            <span style="color:#4e73df;font-weight:700;">Créer une session</span>
+        </div>
+        <div class="user-info">
+            <div><div class="uname">{{ request.user.get_full_name }}</div><div class="urole">Administrateur</div></div>
+            <div class="uavatar">{{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}</div>
+        </div>
+    </div>
+
+    <div class="content">
+        {% if messages %}{% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}{% endif %}
+
+        <div class="page-header">
+            <a href="{% url 'admin_examens' %}" class="btn-back"><i class="fas fa-arrow-left"></i> Retour</a>
+            <h1><i class="fas fa-calendar-plus"></i> Créer une session d'examen</h1>
+        </div>
+
+        <!-- INFO EXAMEN -->
+        <div class="examen-info">
+            <div class="ei-titre"><i class="fas fa-file-alt mr-2"></i>{{ examen.titre }}</div>
+            <div class="ei-meta">
+                <i class="fas fa-user-tie mr-1"></i>{{ examen.cree_par.get_full_name }}
+                &nbsp;|&nbsp;
+                <i class="fas fa-question-circle mr-1"></i>{{ examen.questions.count }} question(s)
+            </div>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-card">
+                <h2><i class="fas fa-calendar-alt"></i> Détails de la session</h2>
+
+                <div class="form-group">
+                    <label>Nom de la session *</label>
+                    <input type="text" name="nom_session" class="form-control-custom"
+                        placeholder="Ex : Session Mars 2026 — Matin" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Concours associé *</label>
+                    <select name="concours" class="form-control-custom" required>
+                        <option value="">-- Sélectionnez un concours --</option>
+                        {% for c in concours_list %}
+                        <option value="{{ c.id }}">{{ c.titre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="row-2">
+                    <div class="form-group">
+                        <label>Date et heure de début *</label>
+                        <input type="datetime-local" name="date_heure_debut" class="form-control-custom" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Date et heure de fin *</label>
+                        <input type="datetime-local" name="date_heure_fin" class="form-control-custom" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Durée (minutes) *</label>
+                    <input type="number" name="duree_minutes" class="form-control-custom"
+                        value="60" min="10" max="240" required>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a href="{% url 'admin_examens' %}" class="btn-cancel">Annuler</a>
+                <button type="submit" class="btn-save">
+                    <i class="fas fa-save"></i> Créer la session
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>
