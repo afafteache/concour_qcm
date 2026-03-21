@@ -2,9 +2,8 @@
 {% block title %}Sessions – Smart QCM{% endblock %}
 {% block nav_sessions %}active{% endblock %}
 {% block content %}
-<div class="d-flex align-items-center justify-content-between mb-4">
+<div class="d-flex align-items-center mb-4">
   <h4 class="mb-0 font-weight-bold text-primary"><i class="fas fa-calendar-alt mr-2"></i>Sessions d'examen</h4>
-  <a href="{% url 'session_creer' %}" class="btn btn-primary btn-sm"><i class="fas fa-plus mr-1"></i>Nouvelle session</a>
 </div>
 <div class="card shadow mb-4">
   <div class="card-body p-0">
@@ -50,7 +49,7 @@
           </tr>
           {% empty %}
           <tr><td colspan="8" class="text-center text-muted py-4">
-            Aucune session. <a href="{% url 'session_creer' %}">Créer la première</a>
+            Aucune session.
           </td></tr>
           {% endfor %}
         </tbody>
