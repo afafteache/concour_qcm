@@ -1,58 +1,125 @@
 {% extends 'admin/base_admin.html' %}
 {% block title %}Résultats – Smart QCM{% endblock %}
 {% block nav_resultats %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+  .stat-vnv { border-radius: 1rem; padding: 20px; text-align: center; }
+  .badge-v  { background: #e6fff4; color: #1cc88a; border: 2px solid #1cc88a; padding: 5px 16px; border-radius: 50px; font-weight: 700; font-size: .85rem; }
+  .badge-nv { background: #fff5f5; color: #e74a3b; border: 2px solid #e74a3b; padding: 5px 16px; border-radius: 50px; font-weight: 700; font-size: .85rem; }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="d-flex align-items-center justify-content-between mb-4">
-  <h4 class="mb-0 font-weight-bold text-primary"><i class="fas fa-chart-bar mr-2"></i>Résultats des examens</h4>
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+  <h1 class="h3 mb-0 text-gray-800 font-weight-bold">
+    <i class="fas fa-chart-bar mr-2 text-primary"></i>Résultats & Statistiques
+  </h1>
 </div>
 
-<form method="GET" class="mb-3">
-  <div class="input-group" style="max-width:350px;">
-    <select class="form-control" name="examen" onchange="this.form.submit()">
-      <option value="">Tous les examens</option>
-      {% for e in examens %}
-      <option value="{{ e.pk }}" {% if examen_selectionne == e.pk|stringformat:"s" %}selected{% endif %}>{{ e.titre }}</option>
-      {% endfor %}
-    </select>
+<!-- STATS V/NV -->
+<div class="row mb-4">
+  <div class="col-xl-3 col-md-6 mb-3">
+    <div class="card shadow stat-vnv border-left-primary">
+      <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total candidats</div>
+      <div class="h2 font-weight-bold text-gray-800">{{ total }}</div>
+    </div>
   </div>
-</form>
+  <div class="col-xl-3 col-md-6 mb-3">
+    <div class="card shadow stat-vnv border-left-success">
+      <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Validés (V)</div>
+      <div class="h2 font-weight-bold text-success">{{ valides }}</div>
+      <small class="text-muted">{{ pct_valides }}%</small>
+    </div>
+  </div>
+  <div class="col-xl-3 col-md-6 mb-3">
+    <div class="card shadow stat-vnv border-left-danger">
+      <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Non Validés (NV)</div>
+      <div class="h2 font-weight-bold text-danger">{{ non_valides }}</div>
+      <small class="text-muted">{{ pct_valides|add:0 }}%</small>
+    </div>
+  </div>
+  <div class="col-xl-3 col-md-6 mb-3">
+    <div class="card shadow stat-vnv border-left-warning">
+      <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Taux de réussite</div>
+      <div class="h2 font-weight-bold text-warning">{{ pct_valides }}%</div>
+    </div>
+  </div>
+</div>
 
+<!-- BARRE DE PROGRESSION GLOBALE -->
+{% if total > 0 %}
 <div class="card shadow mb-4">
+  <div class="card-body">
+    <div class="d-flex justify-content-between mb-1">
+      <span class="font-weight-bold text-success">Validés : {{ valides }}</span>
+      <span class="font-weight-bold text-danger">Non validés : {{ non_valides }}</span>
+    </div>
+    <div class="progress" style="height:20px; border-radius:10px;">
+      <div class="progress-bar bg-success" style="width:{{ pct_valides }}%; border-radius:10px 0 0 10px;">
+        {{ pct_valides }}%
+      </div>
+      <div class="progress-bar bg-danger" style="width:{% widthratio non_valides total 100 %}%; border-radius:0 10px 10px 0;">
+        {% widthratio non_valides total 100 %}%
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- TABLEAU RÉSULTATS -->
+<div class="card shadow mb-4">
+  <div class="card-header py-3">
+    <h6 class="m-0 font-weight-bold text-primary">
+      <i class="fas fa-list mr-2"></i>Détail des résultats
+    </h6>
+  </div>
   <div class="card-body p-0">
     <div class="table-responsive">
-      <table class="table table-hover mb-0">
-        <thead class="thead-light">
+      <table class="table table-hover mb-0" id="tableResultats">
+        <thead class="bg-primary text-white">
           <tr>
-            <th>Candidat</th><th>CIN</th><th>Examen</th>
-            <th>Score</th><th>%</th><th>Résultat</th><th>Date</th>
+            <th>#</th>
+            <th>Candidat</th>
+            <th>CIN</th>
+            <th>Examen</th>
+            <th>Score</th>
+            <th>%</th>
+            <th>Résultat</th>
+            <th>Date</th>
           </tr>
         </thead>
         <tbody>
-          {% for r in resultats %}
+          {% for s in stats %}
           <tr>
-            <td><strong>{{ r.candidat.get_full_name }}</strong></td>
-            <td><code>{{ r.candidat.profil.cin }}</code></td>
-            <td>{{ r.examen.titre }}</td>
-            <td><strong>{{ r.score }}</strong> / {{ r.total_questions }}</td>
+            <td>{{ forloop.counter }}</td>
+            <td class="font-weight-bold">{{ s.candidat }}</td>
+            <td><code class="text-primary">{{ s.cin }}</code></td>
+            <td>{{ s.examen }}</td>
+            <td>{{ s.score }} / {{ s.total }}</td>
             <td>
-              <div class="progress" style="height:6px;width:80px;display:inline-block;vertical-align:middle;">
-                <div class="progress-bar {% if r.reussi %}bg-success{% else %}bg-danger{% endif %}"
-                     style="width:{{ r.pourcentage }}%"></div>
+              <div class="progress" style="height:8px; width:80px;">
+                <div class="progress-bar {% if s.reussi %}bg-success{% else %}bg-danger{% endif %}"
+                     style="width:{{ s.pourcentage }}%"></div>
               </div>
-              <span class="ml-1">{{ r.pourcentage }}%</span>
+              <small>{{ s.pourcentage }}%</small>
             </td>
             <td>
-              {% if r.reussi %}
-                <span class="badge badge-success">Réussi</span>
+              {% if s.reussi %}
+                <span class="badge-v"><i class="fas fa-check mr-1"></i>V</span>
               {% else %}
-                <span class="badge badge-danger">Échoué</span>
+                <span class="badge-nv"><i class="fas fa-times mr-1"></i>NV</span>
               {% endif %}
             </td>
-            <td>{{ r.date_passage|date:"d/m/Y H:i" }}</td>
+            <td class="text-muted small">{{ s.date|date:"d/m/Y H:i" }}</td>
           </tr>
           {% empty %}
           <tr>
-            <td colspan="7" class="text-center text-muted py-4">Aucun résultat enregistré.</td>
+            <td colspan="8" class="text-center text-muted py-5">
+              <i class="fas fa-inbox fa-3x d-block mb-3"></i>
+              Aucun résultat pour le moment.
+            </td>
           </tr>
           {% endfor %}
         </tbody>
@@ -60,4 +127,5 @@
     </div>
   </div>
 </div>
+
 {% endblock %}

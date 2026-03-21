@@ -11,9 +11,9 @@
         body { background: #f0f2f8; font-family: 'Nunito', sans-serif; display: flex; min-height: 100vh; }
         .sidebar { width: 220px; flex-shrink: 0; background: #1a2a5e; display: flex; flex-direction: column; min-height: 100vh; position: fixed; top: 0; left: 0; z-index: 100; }
         .sidebar-brand { padding: 22px 20px 18px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 10px; }
-        .sidebar-brand .brand-icon { width: 34px; height: 34px; border-radius: 8px; background: #4e73df; display: flex; align-items: center; justify-content: center; }
-        .sidebar-brand .brand-name { color: white; font-size: 15px; font-weight: 800; }
-        .sidebar-brand .brand-name span { color: #4e9df5; }
+        .brand-icon { width: 34px; height: 34px; border-radius: 8px; background: #4e73df; display: flex; align-items: center; justify-content: center; }
+        .brand-name { color: white; font-size: 15px; font-weight: 800; }
+        .brand-name span { color: #4e9df5; }
         .sidebar-profile { padding: 18px 16px; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .sidebar-profile .avatar { width: 52px; height: 52px; border-radius: 50%; background: #4e73df; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; color: white; margin: 0 auto 10px; }
         .sidebar-profile .name { color: white; font-size: 13px; font-weight: 700; text-align: center; }
@@ -21,7 +21,6 @@
         .btn-new-question { display: flex; align-items: center; justify-content: center; gap: 7px; padding: 9px 14px; background: #4e73df; color: white; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; text-decoration: none; width: 100%; }
         .btn-new-question:hover { background: #2e59d9; color: white; }
         .sidebar-section { padding: 14px 12px 8px; }
-        .sidebar-section .section-label { color: rgba(255,255,255,0.35); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; padding: 0 10px; margin-bottom: 6px; display: block; }
         .sidebar-section a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; color: rgba(255,255,255,0.65); text-decoration: none; font-size: 13px; font-weight: 600; margin-bottom: 2px; }
         .sidebar-section a:hover { background: rgba(255,255,255,0.08); color: white; }
         .sidebar-section a.active { background: #4e73df; color: white; }
@@ -39,19 +38,24 @@
         .page-header h1 i { color: #4e73df; }
         .btn-new { display: flex; align-items: center; gap: 7px; padding: 10px 20px; background: #4e73df; color: white; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 700; }
         .btn-new:hover { background: #2e59d9; color: white; }
-        .exam-card { background: white; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); padding: 20px 24px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; border-left: 5px solid; }
-        .exam-card.brouillon { border-color: #a0aec0; }
+        .exam-card { background: white; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); padding: 20px 24px; margin-bottom: 14px; border-left: 5px solid; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
         .exam-card.envoye { border-color: #f6c23e; }
         .exam-card.valide { border-color: #1cc88a; }
-        .exam-card .titre { font-size: 15px; font-weight: 800; color: #2d3748; margin-bottom: 4px; }
-        .exam-card .meta { font-size: 12px; color: #a0aec0; }
+        .exam-card.brouillon { border-color: #a0aec0; }
+        .exam-titre { font-size: 15px; font-weight: 800; color: #2d3748; margin-bottom: 4px; }
+        .exam-meta { font-size: 12px; color: #a0aec0; }
         .badge-statut { padding: 5px 14px; border-radius: 50px; font-size: 12px; font-weight: 700; }
-        .badge-statut.brouillon { background: #f0f2f5; color: #718096; }
         .badge-statut.envoye { background: #fef9ec; color: #d4a017; border: 1px solid #f6c23e; }
         .badge-statut.valide { background: #e6fff4; color: #1cc88a; border: 1px solid #1cc88a; }
+        .badge-statut.brouillon { background: #f0f2f5; color: #718096; }
+        .btn-del { padding: 8px 14px; background: white; border: 1px solid #e74a3b; border-radius: 8px; color: #e74a3b; font-size: 12px; font-weight: 700; cursor: pointer; }
+        .btn-del:hover { background: #fff5f5; }
+        .actions { display: flex; align-items: center; gap: 8px; }
         .empty { text-align: center; padding: 60px; color: #a0aec0; background: white; border-radius: 12px; }
         .empty i { font-size: 2.5rem; display: block; margin-bottom: 14px; }
         .empty a { color: #4e73df; font-weight: 700; }
+        .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; font-weight: 600; }
+        .alert-success { background: #f0fff4; border: 1px solid #9ae6b4; color: #276749; }
     </style>
 </head>
 <body>
@@ -68,7 +72,6 @@
         <a href="{% url 'question_ajouter' %}" class="btn-new-question"><i class="fas fa-plus" style="font-size:11px;"></i> Nouvelle question</a>
     </div>
     <div class="sidebar-section">
-        <span class="section-label">Navigation</span>
         <a href="{% url 'dashboard_enseignant' %}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
         <a href="{% url 'question_liste' %}"><i class="fas fa-question-circle"></i> Mes Questions</a>
         <a href="{% url 'question_ajouter' %}"><i class="fas fa-plus-circle"></i> Ajouter une Question</a>
@@ -84,7 +87,6 @@
 <div class="main">
     <div class="topbar">
         <div style="font-size:13px;color:#a0aec0;">
-            <i class="fas fa-home mr-1"></i> Accueil &rsaquo;
             <a href="{% url 'dashboard_enseignant' %}" style="color:#a0aec0;text-decoration:none;">Dashboard</a> &rsaquo;
             <span style="color:#4e73df;font-weight:700;">Mes Examens</span>
         </div>
@@ -95,6 +97,12 @@
     </div>
 
     <div class="content">
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+
         <div class="page-header">
             <h1><i class="fas fa-list-alt"></i> Mes Examens</h1>
             <a href="{% url 'examen_creer' %}" class="btn-new"><i class="fas fa-plus" style="font-size:11px;"></i> Nouvel examen</a>
@@ -103,19 +111,28 @@
         {% for examen in examens %}
         <div class="exam-card {{ examen.statut }}">
             <div>
-                <div class="titre">{{ examen.titre }}</div>
-                <div class="meta">
+                <div class="exam-titre">{{ examen.titre }}</div>
+                <div class="exam-meta">
                     <i class="fas fa-question-circle mr-1"></i> {{ examen.questions.count }} question(s)
                     &nbsp;|&nbsp;
                     <i class="fas fa-calendar mr-1"></i> {{ examen.date_creation|date:"d/m/Y à H:i" }}
                 </div>
             </div>
-            <span class="badge-statut {{ examen.statut }}">
-                {% if examen.statut == 'brouillon' %}<i class="fas fa-pencil-alt mr-1"></i> Brouillon
-                {% elif examen.statut == 'envoye' %}<i class="fas fa-paper-plane mr-1"></i> Envoyé à l'admin
-                {% else %}<i class="fas fa-check mr-1"></i> Validé
-                {% endif %}
-            </span>
+            <div class="actions">
+                <span class="badge-statut {{ examen.statut }}">
+                    {% if examen.statut == 'brouillon' %}<i class="fas fa-pencil-alt mr-1"></i> Brouillon
+                    {% elif examen.statut == 'envoye' %}<i class="fas fa-paper-plane mr-1"></i> Envoyé à l'admin
+                    {% else %}<i class="fas fa-check mr-1"></i> Validé
+                    {% endif %}
+                </span>
+                <form method="POST" action="{% url 'enseignant_supprimer_examen' examen.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-del"
+                        onclick="return confirm('Supprimer l\'examen &quot;{{ examen.titre }}&quot; ?')">
+                        <i class="fas fa-trash mr-1"></i> Supprimer
+                    </button>
+                </form>
+            </div>
         </div>
         {% empty %}
         <div class="empty">

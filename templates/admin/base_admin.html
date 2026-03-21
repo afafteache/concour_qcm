@@ -68,7 +68,7 @@
       </div>
     </li>
 
-    <!-- ══ NOUVEAU : Examens reçus ══ -->
+    <!-- Examens reçus -->
     <li class="nav-item {% block nav_examens %}{% endblock %}">
       <a class="nav-link" href="{% url 'admin_examens' %}">
         <i class="fas fa-fw fa-file-alt"></i>
@@ -79,12 +79,21 @@
       </a>
     </li>
 
+    <!-- Import Candidats -->
+    <li class="nav-item {% block nav_import %}{% endblock %}">
+      <a class="nav-link" href="{% url 'import_candidats' %}">
+        <i class="fas fa-fw fa-file-excel"></i><span>Import Candidats</span>
+      </a>
+    </li>
+
+    <!-- Créer un compte -->
     <li class="nav-item {% block nav_candidats %}{% endblock %}">
       <a class="nav-link" href="{% url 'register' %}">
         <i class="fas fa-fw fa-user-plus"></i><span>Créer un compte</span>
       </a>
     </li>
 
+    <!-- Résultats -->
     <li class="nav-item {% block nav_resultats %}{% endblock %}">
       <a class="nav-link" href="{% url 'resultats_liste' %}">
         <i class="fas fa-fw fa-chart-bar"></i><span>Résultats</span>

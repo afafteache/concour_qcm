@@ -241,6 +241,13 @@ def dashboard_candidat(request):
     examens_passes_ids = list(
         Resultat.objects.filter(candidat=request.user).values_list('examen_id', flat=True)
     )
+
+    # Session encore active ?
+    session_encore_active = SessionConcours.objects.filter(
+        examen_lance=True,
+        date_heure_fin__gte=maintenant
+    ).exists()
+
     mes_resultats = Resultat.objects.filter(
         candidat=request.user
     ).select_related('examen').order_by('-id')
@@ -260,6 +267,7 @@ def dashboard_candidat(request):
         'examens_disponibles': examens_disponibles,
         'examens_en_retard': examens_en_retard,
         'examens_passes_ids': examens_passes_ids,
+        'session_encore_active': session_encore_active,
         'session_prochaine': session_prochaine,
         'mes_resultats': mes_resultats,
         'secondes_avant': secondes_avant,

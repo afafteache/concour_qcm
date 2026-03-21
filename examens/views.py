@@ -289,3 +289,33 @@ def dashboard_enseignant(request):
         'nb_questions': nb_questions,
         'examens': examens,
     })
+
+
+# ═══════════════════════════════════════════════════════
+#  SUPPRIMER EXAMEN — ADMIN
+# ═══════════════════════════════════════════════════════
+
+@login_required(login_url='login')
+@role_required('admin')
+def admin_supprimer_examen(request, examen_id):
+    examen = get_object_or_404(Examen, id=examen_id)
+    if request.method == 'POST':
+        titre = examen.titre
+        examen.delete()
+        messages.success(request, f'Examen "{titre}" supprimé avec succès.')
+    return redirect('admin_examens')
+
+
+# ═══════════════════════════════════════════════════════
+#  SUPPRIMER EXAMEN — ENSEIGNANT
+# ═══════════════════════════════════════════════════════
+
+@login_required(login_url='login')
+@role_required('enseignant')
+def enseignant_supprimer_examen(request, examen_id):
+    examen = get_object_or_404(Examen, id=examen_id, cree_par=request.user)
+    if request.method == 'POST':
+        titre = examen.titre
+        examen.delete()
+        messages.success(request, f'Examen "{titre}" supprimé avec succès.')
+    return redirect('mes_examens')

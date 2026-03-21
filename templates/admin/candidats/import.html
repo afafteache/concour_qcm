@@ -1,0 +1,112 @@
+{% extends 'admin/base_admin.html' %}
+{% block title %}Import Candidats – Smart QCM{% endblock %}
+{% block nav_import %}active{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-4">
+  <a href="{% url 'dashboard_admin' %}" class="btn btn-sm btn-outline-secondary mr-3">
+    <i class="fas fa-arrow-left"></i>
+  </a>
+  <h4 class="mb-0 font-weight-bold text-primary">
+    <i class="fas fa-file-excel mr-2"></i>Import des candidats
+  </h4>
+</div>
+
+<!-- FORMULAIRE IMPORT -->
+<div class="card shadow border-0 mb-4">
+  <div class="card-header py-3 bg-primary">
+    <h6 class="m-0 font-weight-bold text-white">
+      <i class="fas fa-upload mr-2"></i>Importer un fichier Excel
+    </h6>
+  </div>
+  <div class="card-body">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <form method="POST" enctype="multipart/form-data" class="d-flex align-items-center gap-3">
+          {% csrf_token %}
+          <div class="custom-file mr-3">
+            <input type="file" class="custom-file-input" name="fichier_excel"
+                   id="fichierExcel" accept=".xlsx,.xls" required>
+            <label class="custom-file-label" for="fichierExcel">
+              Choisir un fichier Excel...
+            </label>
+          </div>
+          <button type="submit" class="btn btn-primary ml-2" style="white-space:nowrap;">
+            <i class="fas fa-upload mr-1"></i>Importer
+          </button>
+        </form>
+        <small class="text-muted mt-2 d-block">
+          Le fichier doit contenir 3 colonnes : <strong>Prénom</strong>, <strong>Nom</strong>, <strong>CIN</strong>
+        </small>
+      </div>
+      <div class="col-md-4 text-right">
+        <a href="{% url 'modele_excel' %}" class="btn btn-success">
+          <i class="fas fa-download mr-1"></i>Télécharger le modèle
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LISTE CANDIDATS -->
+<div class="card shadow border-0">
+  <div class="card-header py-3 d-flex justify-content-between align-items-center">
+    <h6 class="m-0 font-weight-bold text-primary">
+      <i class="fas fa-users mr-2"></i>Candidats enregistrés ({{ candidats|length }})
+    </h6>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="bg-light">
+          <tr>
+            <th>#</th>
+            <th>Prénom</th>
+            <th>Nom</th>
+            <th>CIN</th>
+            <th>Date création</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in candidats %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ p.user.first_name }}</td>
+            <td>{{ p.user.last_name }}</td>
+            <td><code class="text-primary">{{ p.cin }}</code></td>
+            <td class="text-muted small">{{ p.user.date_joined|date:"d/m/Y" }}</td>
+            <td>
+              <form method="POST" action="{% url 'supprimer_candidat' p.id %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-danger"
+                  onclick="return confirm('Supprimer {{ p.user.get_full_name }} ?')">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="text-center text-muted py-4">
+              <i class="fas fa-users fa-2x d-block mb-2"></i>
+              Aucun candidat enregistré.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('fichierExcel').addEventListener('change', function(e) {
+    var fileName = e.target.files[0] ? e.target.files[0].name : 'Choisir un fichier Excel...';
+    document.querySelector('.custom-file-label').textContent = fileName;
+});
+</script>
+{% endblock %}
