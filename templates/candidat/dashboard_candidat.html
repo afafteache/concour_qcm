@@ -1,10 +1,10 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mon Espace – Smart QCM</title>
-  {% load static %}
   <link href="{% static 'vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet">
   <link href="{% static 'css/sb-admin-2.css' %}" rel="stylesheet">
   <style>
@@ -12,13 +12,13 @@
     .candidat-header { background: linear-gradient(135deg,#1cc88a,#13855c); border-radius: .5rem; }
     .exam-card { border-left: 4px solid #1cc88a; transition: transform .2s; }
     .exam-card:hover { transform: translateY(-3px); }
+    .exam-card-retard { border-left: 4px solid #e74a3b; }
     .countdown-badge { font-size: 1.4rem; font-weight: 700; font-family: monospace; color: #e74a3b; }
     .btn-commencer-disabled { cursor: not-allowed; }
   </style>
 </head>
 <body>
 
-<!-- TOPBAR -->
 <nav class="navbar navbar-light bg-white shadow-sm mb-4">
   <div class="container-fluid">
     <span class="navbar-brand font-weight-bold text-primary">
@@ -42,8 +42,7 @@
     <div class="card-body py-4 px-5">
       <div class="row align-items-center">
         <div class="col-auto">
-          <div style="width:70px;height:70px;background:rgba(255,255,255,.2);border-radius:50%;
-                      display:flex;align-items:center;justify-content:center;font-size:2rem;">
+          <div style="width:70px;height:70px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2rem;">
             <i class="fas fa-user-graduate"></i>
           </div>
         </div>
@@ -66,7 +65,6 @@
     </div>
   </div>
 
-  <!-- Examens disponibles (pleine largeur) -->
   <div class="row justify-content-center">
     <div class="col-lg-8">
       <div class="card shadow mb-4">
@@ -77,34 +75,68 @@
         </div>
         <div class="card-body">
 
-          {% if examens_disponibles %}
+          {% if examens_passes_ids %}
+            <!-- Candidat a déjà passé -->
+            <div class="text-center py-5">
+              <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+              <h6 class="font-weight-bold text-success mb-2">Vous avez déjà passé cet examen !</h6>
+              <p class="text-muted">Vos réponses ont été enregistrées.</p>
+            </div>
+
+          {% elif examens_disponibles %}
+            <!-- Examen disponible — dans les 5 minutes -->
             {% for examen in examens_disponibles %}
-              {% if examen.id not in examens_passes_ids %}
-              <div class="card exam-card shadow-sm mb-3">
-                <div class="card-body">
-                  <div class="row align-items-center">
-                    <div class="col">
-                      <h6 class="font-weight-bold text-gray-800 mb-1">{{ examen.titre }}</h6>
-                      <div class="text-muted small">
-                        <i class="fas fa-clock mr-1"></i>
-                        Durée : {{ examen.session.duree_minutes }} min
-                        &nbsp;|&nbsp;
-                        <i class="fas fa-calendar mr-1"></i>
-                        Fin : {{ examen.session.date_heure_fin|date:"d/m/Y H:i" }}
-                      </div>
+            <div class="card exam-card shadow-sm mb-3">
+              <div class="card-body">
+                <div class="row align-items-center">
+                  <div class="col">
+                    <h6 class="font-weight-bold text-gray-800 mb-1">{{ examen.titre }}</h6>
+                    <div class="text-muted small">
+                      <i class="fas fa-clock mr-1"></i>
+                      Durée : {{ examen.session.duree_minutes }} min
+                      &nbsp;|&nbsp;
+                      <i class="fas fa-calendar mr-1"></i>
+                      Fin : {{ examen.session.date_heure_fin|date:"d/m/Y H:i" }}
                     </div>
-                    <div class="col-auto">
-                      <a href="{% url 'examen' examen.id %}" class="btn btn-success btn-lg px-4 shadow-sm">
-                        <i class="fas fa-play mr-2"></i>Commencer l'examen
-                      </a>
-                    </div>
+                  </div>
+                  <div class="col-auto">
+                    <a href="{% url 'examen' examen.id %}" class="btn btn-success btn-lg px-4 shadow-sm">
+                      <i class="fas fa-play mr-2"></i>Commencer l'examen
+                    </a>
                   </div>
                 </div>
               </div>
-              {% endif %}
+            </div>
+            {% endfor %}
+
+          {% elif examens_en_retard %}
+            <!-- En retard — bouton gris -->
+            {% for examen in examens_en_retard %}
+            <div class="card exam-card-retard shadow-sm mb-3">
+              <div class="card-body">
+                <div class="row align-items-center">
+                  <div class="col">
+                    <h6 class="font-weight-bold text-gray-800 mb-1">{{ examen.titre }}</h6>
+                    <div class="text-danger small font-weight-bold">
+                      <i class="fas fa-exclamation-triangle mr-1"></i>
+                      Vous avez dépassé le temps autorisé pour commencer cet examen.
+                    </div>
+                    <div class="text-muted small mt-1">
+                      L'accès à l'examen était autorisé pendant les 5 premières minutes.
+                    </div>
+                  </div>
+                  <div class="col-auto">
+                    <button class="btn btn-secondary btn-lg px-4 btn-commencer-disabled" disabled>
+                      <i class="fas fa-lock mr-2"></i>Accès refusé
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
             {% endfor %}
 
           {% elif session_prochaine and not session_prochaine.examen_lance %}
+            <!-- Session planifiée non encore lancée -->
             <div class="text-center py-4">
               <i class="fas fa-hourglass-half fa-3x text-warning mb-3"></i>
               <h6 class="font-weight-bold text-gray-700 mb-2">Examen prévu :</h6>
@@ -126,6 +158,7 @@
             </div>
 
           {% else %}
+            <!-- Aucun examen -->
             <div class="text-center py-5 text-muted">
               <i class="fas fa-inbox fa-3x mb-3"></i>
               <p>Aucun examen disponible pour le moment.</p>

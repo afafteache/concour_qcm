@@ -4,17 +4,16 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
+from datetime import timedelta
 from .models import Profil
 from .decorators import role_required
 
 
 def get_profil(user):
-    """Récupère le profil lié à l'utilisateur."""
     return Profil.objects.filter(user=user).first()
 
 
 def redirect_role(user):
-    """Redirige vers le bon dashboard selon le rôle."""
     profil = get_profil(user)
     if profil is None:
         return redirect('login')
@@ -30,7 +29,7 @@ def redirect_role(user):
 def home(request):
     if request.user.is_authenticated:
         return redirect_role(request.user)
-    return redirect('login')
+    return render(request, 'home.html')
 
 
 def login_view(request):
@@ -81,6 +80,43 @@ def logout_view(request):
     return redirect('login')
 
 
+def register_public_view(request):
+    """Inscription publique — admin uniquement."""
+    if request.user.is_authenticated:
+        return redirect_role(request.user)
+
+    if request.method == 'POST':
+        first_name = request.POST.get('first_name', '').strip()
+        last_name  = request.POST.get('last_name', '').strip()
+        cin        = request.POST.get('cin', '').strip()
+        email      = request.POST.get('email', '').strip()
+        password   = request.POST.get('password', '').strip()
+        password2  = request.POST.get('password2', '').strip()
+
+        if not first_name or not last_name or not cin:
+            messages.error(request, 'Prénom, nom et CIN sont obligatoires.')
+        elif Profil.objects.filter(cin=cin).exists():
+            messages.error(request, 'Ce CIN est déjà utilisé.')
+        elif not password:
+            messages.error(request, 'Le mot de passe est obligatoire.')
+        elif password != password2:
+            messages.error(request, 'Les mots de passe ne correspondent pas.')
+        elif len(password) < 6:
+            messages.error(request, 'Le mot de passe doit contenir au moins 6 caractères.')
+        else:
+            user = User.objects.create_user(
+                username=cin, email=email, password=password,
+                first_name=first_name, last_name=last_name
+            )
+            user.is_staff = True
+            user.save()
+            Profil.objects.create(user=user, cin=cin, role='admin')
+            messages.success(request, 'Compte administrateur créé ! Connectez-vous.')
+            return redirect('login')
+
+    return render(request, 'register_public.html')
+
+
 @login_required(login_url='login')
 def dashboard_admin(request):
     from concours.models import SessionConcours, Concours
@@ -98,10 +134,10 @@ def dashboard_admin(request):
     nb_resultats = Resultat.objects.count()
     nb_examens_nouveaux = Examen.objects.filter(statut='envoye').count()
 
-    # Session active pour le countdown
     now = timezone.now()
     session_active = SessionConcours.objects.filter(
-        etat__in=['planifiee', 'en_cours']
+        etat__in=['planifiee', 'en_cours'],
+        date_heure_fin__gte=now
     ).select_related('concours').order_by('date_heure_debut').first()
 
     peut_lancer = False
@@ -181,16 +217,38 @@ def dashboard_candidat(request):
         return redirect('login_candidat')
 
     maintenant = timezone.now()
+    tolerance = timedelta(minutes=5)
 
-    examens_disponibles = Examen.objects.filter(actif=True).select_related('session').order_by('-date_creation')
+    sessions_lancees = SessionConcours.objects.filter(
+        examen_lance=True,
+        date_heure_fin__gte=maintenant
+    )
+
+    examens_disponibles = []
+    examens_en_retard = []
+
+    for s in sessions_lancees:
+        try:
+            if s.examen and s.examen.actif:
+                limite = s.date_heure_debut + tolerance
+                if maintenant <= limite:
+                    examens_disponibles.append(s.examen)
+                else:
+                    examens_en_retard.append(s.examen)
+        except Exception:
+            pass
+
     examens_passes_ids = list(
         Resultat.objects.filter(candidat=request.user).values_list('examen_id', flat=True)
     )
-    mes_resultats = Resultat.objects.filter(candidat=request.user).select_related('examen').order_by('-id')
+    mes_resultats = Resultat.objects.filter(
+        candidat=request.user
+    ).select_related('examen').order_by('-id')
 
     session_prochaine = SessionConcours.objects.filter(
-        date_heure_debut__gt=maintenant
-    ).select_related('concours').order_by('date_heure_debut').first()
+        date_heure_fin__gte=maintenant,
+        examen_lance=False
+    ).order_by('date_heure_debut').first()
 
     secondes_avant = 0
     if session_prochaine:
@@ -200,6 +258,7 @@ def dashboard_candidat(request):
     return render(request, 'candidat/dashboard_candidat.html', {
         'profil': profil,
         'examens_disponibles': examens_disponibles,
+        'examens_en_retard': examens_en_retard,
         'examens_passes_ids': examens_passes_ids,
         'session_prochaine': session_prochaine,
         'mes_resultats': mes_resultats,
@@ -208,7 +267,7 @@ def dashboard_candidat(request):
 
 
 @login_required(login_url='login')
-@role_required('admin', 'enseignant')
+@role_required('admin')
 def register_view(request):
     current_profil = get_profil(request.user)
     if current_profil is None:
@@ -217,22 +276,22 @@ def register_view(request):
 
     if request.method == 'POST':
         first_name = request.POST.get('first_name', '').strip()
-        last_name = request.POST.get('last_name', '').strip()
-        cin = request.POST.get('cin', '').strip()
-        email = request.POST.get('email', '').strip()
-        password = request.POST.get('password', '').strip()
-        password2 = request.POST.get('password2', '').strip()
-        role = request.POST.get('role', 'candidat').strip()
+        last_name  = request.POST.get('last_name', '').strip()
+        cin        = request.POST.get('cin', '').strip()
+        email      = request.POST.get('email', '').strip()
+        password   = request.POST.get('password', '').strip()
+        password2  = request.POST.get('password2', '').strip()
+        role       = request.POST.get('role', 'candidat').strip()
 
         if not first_name or not last_name or not cin:
             messages.error(request, 'Prénom, nom et CIN sont obligatoires.')
         elif Profil.objects.filter(cin=cin).exists():
             messages.error(request, 'Ce CIN est déjà utilisé.')
-        elif role in ['admin', 'enseignant'] and current_profil.role != 'admin':
-            messages.error(request, 'Seul un administrateur peut créer ce type de compte.')
-        elif role in ['admin', 'enseignant'] and not password:
-            messages.error(request, 'Un mot de passe est obligatoire.')
-        elif role in ['admin', 'enseignant'] and password != password2:
+        elif role not in ['candidat', 'enseignant']:
+            messages.error(request, 'Rôle invalide.')
+        elif role == 'enseignant' and not password:
+            messages.error(request, 'Un mot de passe est obligatoire pour l\'enseignant.')
+        elif role == 'enseignant' and password != password2:
             messages.error(request, 'Les mots de passe ne correspondent pas.')
         else:
             if role == 'candidat':
@@ -246,16 +305,8 @@ def register_view(request):
                     username=cin, email=email, password=password,
                     first_name=first_name, last_name=last_name
                 )
-                if role == 'admin':
-                    user.is_staff = True
-                    user.save()
-
             Profil.objects.create(user=user, cin=cin, role=role)
             messages.success(request, f'Compte de {first_name} {last_name} créé avec succès.')
+            return redirect('dashboard_admin')
 
-            if current_profil.role == 'admin':
-                return redirect('dashboard_admin')
-            return redirect('dashboard_enseignant')
-
-    roles_disponibles = ['admin', 'enseignant', 'candidat'] if current_profil.role == 'admin' else ['candidat']
-    return render(request, 'register.html', {'roles_disponibles': roles_disponibles})
+    return render(request, 'admin/register.html', {})
