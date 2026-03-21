@@ -4,11 +4,32 @@
 
 {% block extra_css %}
 <style>
-  .stat-card { border-left: 4px solid; border-radius: .5rem; transition: transform .2s; }
-  .stat-card:hover { transform: translateY(-3px); }
-  .countdown-box { font-size: 2.5rem; font-weight: 700; letter-spacing: 3px; font-family: monospace; }
-  .lancer-btn-disabled { cursor: not-allowed; opacity: .65; }
-  .progress-sm { height: 8px; border-radius: 4px; }
+    .stat-card {
+        border-left: 4px solid;
+        border-radius: .5rem;
+        transition: transform .2s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+    }
+
+    .countdown-box {
+        font-size: 2.5rem;
+        font-weight: 700;
+        letter-spacing: 3px;
+        font-family: monospace;
+    }
+
+    .lancer-btn-disabled {
+        cursor: not-allowed;
+        opacity: .65;
+    }
+
+    .progress-sm {
+        height: 8px;
+        border-radius: 4px;
+    }
 </style>
 {% endblock %}
 
@@ -16,261 +37,267 @@
 
 <!-- ══ En-tête ══ -->
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
-  <h1 class="h3 mb-0 text-gray-800 font-weight-bold">
-    <i class="fas fa-tachometer-alt mr-2 text-primary"></i>Dashboard Administrateur
-  </h1>
-  <a href="{% url 'register' %}" class="btn btn-primary btn-sm shadow-sm">
-    <i class="fas fa-user-plus mr-1"></i>Créer un compte
-  </a>
+    <h1 class="h3 mb-0 text-gray-800 font-weight-bold">
+        <i class="fas fa-tachometer-alt mr-2 text-primary"></i>Dashboard Administrateur
+    </h1>
+    <a href="{% url 'register' %}" class="btn btn-primary btn-sm shadow-sm">
+        <i class="fas fa-user-plus mr-1"></i>Créer un compte
+    </a>
 </div>
 
 <!-- ══ Cartes stats ══ -->
 <div class="row mb-4">
 
-  <div class="col-xl-3 col-md-6 mb-4">
-    <div class="card stat-card shadow h-100 py-2" style="border-color:#4e73df;">
-      <div class="card-body">
-        <div class="row no-gutters align-items-center">
-          <div class="col mr-2">
-            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Concours</div>
-            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ nb_concours }}</div>
-          </div>
-          <div class="col-auto"><i class="fas fa-trophy fa-2x text-gray-300"></i></div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card shadow h-100 py-2" style="border-color:#4e73df;">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Concours</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ nb_concours }}</div>
+                    </div>
+                    <div class="col-auto"><i class="fas fa-trophy fa-2x text-gray-300"></i></div>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
 
-  <div class="col-xl-3 col-md-6 mb-4">
-    <div class="card stat-card shadow h-100 py-2" style="border-color:#1cc88a;">
-      <div class="card-body">
-        <div class="row no-gutters align-items-center">
-          <div class="col mr-2">
-            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Candidats</div>
-            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ nb_candidats }}</div>
-          </div>
-          <div class="col-auto"><i class="fas fa-user-graduate fa-2x text-gray-300"></i></div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card shadow h-100 py-2" style="border-color:#1cc88a;">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Candidats</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ nb_candidats }}</div>
+                    </div>
+                    <div class="col-auto"><i class="fas fa-user-graduate fa-2x text-gray-300"></i></div>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
 
-  <div class="col-xl-3 col-md-6 mb-4">
-    <div class="card stat-card shadow h-100 py-2" style="border-color:#f6c23e;">
-      <div class="card-body">
-        <div class="row no-gutters align-items-center">
-          <div class="col mr-2">
-            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Sessions</div>
-            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ nb_sessions }}</div>
-          </div>
-          <div class="col-auto"><i class="fas fa-calendar-alt fa-2x text-gray-300"></i></div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card shadow h-100 py-2" style="border-color:#f6c23e;">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Sessions</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ nb_sessions }}</div>
+                    </div>
+                    <div class="col-auto"><i class="fas fa-calendar-alt fa-2x text-gray-300"></i></div>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
 
-  <div class="col-xl-3 col-md-6 mb-4">
-    <div class="card stat-card shadow h-100 py-2" style="border-color:#e74a3b;">
-      <div class="card-body">
-        <div class="row no-gutters align-items-center">
-          <div class="col mr-2">
-            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Résultats</div>
-            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ nb_resultats }}</div>
-          </div>
-          <div class="col-auto"><i class="fas fa-chart-bar fa-2x text-gray-300"></i></div>
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card stat-card shadow h-100 py-2" style="border-color:#e74a3b;">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Résultats</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ nb_resultats }}</div>
+                    </div>
+                    <div class="col-auto"><i class="fas fa-chart-bar fa-2x text-gray-300"></i></div>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
 
 </div>
 
 <!-- ══ Examen actif + countdown + bouton lancer ══ -->
 {% if session_active %}
 <div class="row mb-4">
-  <div class="col-lg-8">
-    <div class="card shadow border-0">
-      <div class="card-header py-3 d-flex align-items-center justify-content-between"
-           style="background:linear-gradient(135deg,#4e73df,#224abe);">
-        <h6 class="m-0 font-weight-bold text-white">
-          <i class="fas fa-clock mr-2"></i>Session en attente
-        </h6>
-        <span class="badge badge-light text-primary">{{ session_active.etat|title }}</span>
-      </div>
-      <div class="card-body">
+    <div class="col-lg-8">
+        <div class="card shadow border-0">
+            <div class="card-header py-3 d-flex align-items-center justify-content-between"
+                style="background:linear-gradient(135deg,#4e73df,#224abe);">
+                <h6 class="m-0 font-weight-bold text-white">
+                    <i class="fas fa-clock mr-2"></i>Session en attente
+                </h6>
+                <span class="badge badge-light text-primary">{{ session_active.etat|title }}</span>
+            </div>
+            <div class="card-body">
 
-        <div class="row">
-          <div class="col-md-7">
-            <h5 class="font-weight-bold text-gray-800">{{ session_active.nom_session }}</h5>
-            <p class="text-muted mb-1">
-              <i class="fas fa-trophy mr-1 text-warning"></i>
-              {{ session_active.concours.titre }}
-            </p>
-            <p class="text-muted mb-1">
-              <i class="fas fa-clock mr-1 text-info"></i>
-              Début : <strong>{{ session_active.date_heure_debut|date:"d/m/Y à H:i" }}</strong>
-            </p>
-            <p class="text-muted mb-0">
-              <i class="fas fa-hourglass-half mr-1 text-danger"></i>
-              Durée : <strong>{{ session_active.duree_minutes }} minutes</strong>
-            </p>
-          </div>
+                <div class="row">
+                    <div class="col-md-7">
+                        <h5 class="font-weight-bold text-gray-800">{{ session_active.nom_session }}</h5>
+                        <p class="text-muted mb-1">
+                            <i class="fas fa-trophy mr-1 text-warning"></i>
+                            {{ session_active.concours.titre }}
+                        </p>
+                        <p class="text-muted mb-1">
+                            <i class="fas fa-clock mr-1 text-info"></i>
+                            Début : <strong>{{ session_active.date_heure_debut|date:"d/m/Y à H:i" }}</strong>
+                        </p>
+                        <p class="text-muted mb-0">
+                            <i class="fas fa-hourglass-half mr-1 text-danger"></i>
+                            Durée : <strong>{{ session_active.duree_minutes }} minutes</strong>
+                        </p>
+                    </div>
 
-          <div class="col-md-5 text-center">
-            {% if not session_active.examen_lance %}
-              <!-- Countdown avant le début -->
-              <div class="text-muted small mb-1">Temps avant le début</div>
-              <div class="countdown-box text-primary mb-3" id="countdown">--:--:--</div>
+                    <div class="col-md-5 text-center">
+                        {% if not session_active.examen_lance %}
+                        <!-- Countdown avant le début -->
+                        <div class="text-muted small mb-1">Temps avant le début</div>
+                        <div class="countdown-box text-primary mb-3" id="countdown">--:--:--</div>
 
-              <!-- Bouton GRIS si pas l'heure, BLEU si l'heure est passée -->
-              {% if peut_lancer %}
-                <a href="{% url 'session_lancer' session_active.pk %}"
-                   class="btn btn-primary btn-lg px-4 shadow">
-                  <i class="fas fa-play-circle mr-2"></i>Lancer l'examen
-                </a>
-              {% else %}
-                <button class="btn btn-secondary btn-lg px-4 lancer-btn-disabled" disabled>
-                  <i class="fas fa-play-circle mr-2"></i>Lancer l'examen
-                </button>
-                <div class="text-muted small mt-2">
-                  <i class="fas fa-info-circle mr-1"></i>Disponible à l'heure prévue
+                        <!-- Bouton GRIS si pas l'heure, BLEU si l'heure est passée -->
+                        {% if peut_lancer %}
+                        <a href="{% url 'session_lancer' session_active.pk %}"
+                            class="btn btn-primary btn-lg px-4 shadow">
+                            <i class="fas fa-play-circle mr-2"></i>Lancer l'examen
+                        </a>
+                        {% else %}
+                        <button class="btn btn-secondary btn-lg px-4 lancer-btn-disabled" disabled>
+                            <i class="fas fa-play-circle mr-2"></i>Lancer l'examen
+                        </button>
+                        <div class="text-muted small mt-2">
+                            <i class="fas fa-info-circle mr-1"></i>Disponible à l'heure prévue
+                        </div>
+                        {% endif %}
+
+                        {% else %}
+                        <!-- Examen en cours -->
+                        <div class="text-success mb-2"><i class="fas fa-check-circle fa-3x"></i></div>
+                        <div class="font-weight-bold text-success">Examen lancé !</div>
+                        <div class="text-muted small mt-1">
+                            Lancé à {{ session_active.date_lancement|date:"H:i" }}
+                            par {{ session_active.lance_par.get_full_name }}
+                        </div>
+                        {% endif %}
+                    </div>
                 </div>
-              {% endif %}
 
-            {% else %}
-              <!-- Examen en cours -->
-              <div class="text-success mb-2"><i class="fas fa-check-circle fa-3x"></i></div>
-              <div class="font-weight-bold text-success">Examen lancé !</div>
-              <div class="text-muted small mt-1">
-                Lancé à {{ session_active.date_lancement|date:"H:i" }}
-                par {{ session_active.lance_par.get_full_name }}
-              </div>
-            {% endif %}
-          </div>
+            </div>
         </div>
-
-      </div>
     </div>
-  </div>
 
-  <!-- Mini stats examen actif -->
-  <div class="col-lg-4">
-    <div class="card shadow border-left-info h-100">
-      <div class="card-body d-flex flex-column justify-content-center text-center p-4">
-        <i class="fas fa-users fa-3x text-info mb-3"></i>
-        <h4 class="font-weight-bold text-gray-800">{{ candidats_suivi|length }}</h4>
-        <div class="text-muted">candidat(s) ayant soumis</div>
-        <a href="{% url 'resultats_liste' %}" class="btn btn-outline-info btn-sm mt-3">
-          <i class="fas fa-chart-bar mr-1"></i>Voir tous les résultats
-        </a>
-      </div>
+    <!-- Mini stats examen actif -->
+    <div class="col-lg-4">
+        <div class="card shadow border-left-info h-100">
+            <div class="card-body d-flex flex-column justify-content-center text-center p-4">
+                <i class="fas fa-users fa-3x text-info mb-3"></i>
+                <h4 class="font-weight-bold text-gray-800">{{ candidats_suivi|length }}</h4>
+                <div class="text-muted">candidat(s) ayant soumis</div>
+                <a href="{% url 'resultats_liste' %}" class="btn btn-outline-info btn-sm mt-3">
+                    <i class="fas fa-chart-bar mr-1"></i>Voir tous les résultats
+                </a>
+            </div>
+        </div>
     </div>
-  </div>
 </div>
 
 <!-- ══ Suivi candidats en temps réel ══ -->
 {% if session_active.examen_lance and candidats_suivi %}
 <div class="card shadow mb-4">
-  <div class="card-header py-3">
-    <h6 class="m-0 font-weight-bold text-primary">
-      <i class="fas fa-satellite-dish mr-2"></i>Suivi en temps réel des candidats
-    </h6>
-  </div>
-  <div class="card-body p-0">
-    <div class="table-responsive">
-      <table class="table table-hover mb-0">
-        <thead class="thead-light">
-          <tr><th>Candidat</th><th>CIN</th><th>Score</th><th>Progression</th></tr>
-        </thead>
-        <tbody>
-          {% for c in candidats_suivi %}
-          <tr>
-            <td><strong>{{ c.nom }}</strong></td>
-            <td><code>{{ c.cin }}</code></td>
-            <td>{{ c.score }} / {{ c.total }}</td>
-            <td>
-              <div class="d-flex align-items-center">
-                <div class="progress progress-sm flex-grow-1 mr-2">
-                  <div class="progress-bar {% if c.pourcentage >= 50 %}bg-success{% else %}bg-danger{% endif %}"
-                       style="width:{{ c.pourcentage }}%"></div>
-                </div>
-                <span class="small">{{ c.pourcentage }}%</span>
-              </div>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-satellite-dish mr-2"></i>Suivi en temps réel des candidats
+        </h6>
     </div>
-  </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Candidat</th>
+                        <th>CIN</th>
+                        <th>Score</th>
+                        <th>Progression</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in candidats_suivi %}
+                    <tr>
+                        <td><strong>{{ c.nom }}</strong></td>
+                        <td><code>{{ c.cin }}</code></td>
+                        <td>{{ c.score }} / {{ c.total }}</td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="progress progress-sm flex-grow-1 mr-2">
+                                    <div class="progress-bar {% if c.pourcentage >= 50 %}bg-success{% else %}bg-danger{% endif %}"
+                                        style="width:{{ c.pourcentage }}%"></div>
+                                </div>
+                                <span class="small">{{ c.pourcentage }}%</span>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 {% endif %}
 
 {% else %}
 <!-- Pas de session active -->
 <div class="card shadow mb-4 border-left-warning">
-  <div class="card-body text-center py-5">
-    <i class="fas fa-calendar-times fa-4x text-warning mb-3"></i>
-    <h5 class="text-gray-700">Aucune session planifiée ou en cours</h5>
-    <p class="text-muted">Créez une session pour planifier un examen.</p>
-    <a href="{% url 'session_creer' %}" class="btn btn-warning mt-2">
-      <i class="fas fa-plus mr-1"></i>Créer une session
-    </a>
-  </div>
+    <div class="card-body text-center py-5">
+        <i class="fas fa-calendar-times fa-4x text-warning mb-3"></i>
+        <h5 class="text-gray-700">Aucune session planifiée ou en cours</h5>
+        <p class="text-muted">Créez une session pour planifier un examen.</p>
+        <a href="{% url 'session_creer' %}" class="btn btn-warning mt-2">
+            <i class="fas fa-plus mr-1"></i>Créer une session
+        </a>
+    </div>
 </div>
 {% endif %}
 
 <!-- ══ Raccourcis rapides ══ -->
 <div class="row">
-  <div class="col-md-3 mb-3">
-    <a href="{% url 'concours_creer' %}" class="btn btn-outline-primary btn-block py-3">
-      <i class="fas fa-trophy d-block mb-1"></i>Nouveau concours
-    </a>
-  </div>
-  <div class="col-md-3 mb-3">
-    <a href="{% url 'session_creer' %}" class="btn btn-outline-warning btn-block py-3">
-      <i class="fas fa-calendar-plus d-block mb-1"></i>Nouvelle session
-    </a>
-  </div>
-  <div class="col-md-3 mb-3">
-    <a href="{% url 'register' %}" class="btn btn-outline-success btn-block py-3">
-      <i class="fas fa-user-plus d-block mb-1"></i>Créer un compte
-    </a>
-  </div>
-  <div class="col-md-3 mb-3">
-    <a href="{% url 'resultats_liste' %}" class="btn btn-outline-danger btn-block py-3">
-      <i class="fas fa-chart-bar d-block mb-1"></i>Voir les résultats
-    </a>
-  </div>
+    <div class="col-md-3 mb-3">
+        <a href="{% url 'concours_creer' %}" class="btn btn-outline-primary btn-block py-3">
+            <i class="fas fa-trophy d-block mb-1"></i>Nouveau concours
+        </a>
+    </div>
+    <div class="col-md-3 mb-3">
+        <a href="{% url 'session_creer' %}" class="btn btn-outline-warning btn-block py-3">
+            <i class="fas fa-calendar-plus d-block mb-1"></i>Nouvelle session
+        </a>
+    </div>
+    <div class="col-md-3 mb-3">
+        <a href="{% url 'register' %}" class="btn btn-outline-success btn-block py-3">
+            <i class="fas fa-user-plus d-block mb-1"></i>Créer un compte
+        </a>
+    </div>
+    <div class="col-md-3 mb-3">
+        <a href="{% url 'resultats_liste' %}" class="btn btn-outline-danger btn-block py-3">
+            <i class="fas fa-chart-bar d-block mb-1"></i>Voir les résultats
+        </a>
+    </div>
 </div>
 
 {% endblock %}
 
 {% block extra_js %}
 <script>
-// Countdown avant le début de la session
-(function () {
-  const secondes = {{ secondes_avant_debut|default:0 }};
-  const el = document.getElementById('countdown');
-  if (!el || secondes <= 0) {
-    if (el) el.textContent = '00:00:00';
-    return;
-  }
-  let reste = secondes;
-  function afficher() {
-    const h = String(Math.floor(reste / 3600)).padStart(2, '0');
-    const m = String(Math.floor((reste % 3600) / 60)).padStart(2, '0');
-    const s = String(reste % 60).padStart(2, '0');
-    el.textContent = h + ':' + m + ':' + s;
-    if (reste <= 0) {
-      // Recharger pour activer le bouton Lancer
-      location.reload();
-      return;
+    // Countdown avant le début de la session
+    (function () {
+        const secondes = {{ secondes_avant_debut|default: 0
+    }};
+    const el = document.getElementById('countdown');
+    if (!el || secondes <= 0) {
+        if (el) el.textContent = '00:00:00';
+        return;
     }
-    reste--;
-    setTimeout(afficher, 1000);
-  }
-  afficher();
-})();
+    let reste = secondes;
+    function afficher() {
+        const h = String(Math.floor(reste / 3600)).padStart(2, '0');
+        const m = String(Math.floor((reste % 3600) / 60)).padStart(2, '0');
+        const s = String(reste % 60).padStart(2, '0');
+        el.textContent = h + ':' + m + ':' + s;
+        if (reste <= 0) {
+            // Recharger pour activer le bouton Lancer
+            location.reload();
+            return;
+        }
+        reste--;
+        setTimeout(afficher, 1000);
+    }
+    afficher();
+}) ();
 </script>
 {% endblock %}

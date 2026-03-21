@@ -94,3 +94,4 @@ LOGIN_REDIRECT_URL = 'dashboard_admin'
 LOGOUT_REDIRECT_URL = 'login'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+AUTO_REFRESH_INTERVAL = 10000  # 10 secondes

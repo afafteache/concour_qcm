@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    {% block head %}{% endblock %}
+    {% load static %}
+</head>
+
+<body>
+    {% block body %}{% endblock %}
+
+    <!-- AUTO REFRESH SCRIPT -->
+    <script>
+        const REFRESH_INTERVAL = 10000; // 10 secondes
+
+        function autoRefresh() {
+            const mainContent = document.querySelector('#main-content');
+            if (!mainContent) return;
+
+            fetch(window.location.href, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const newDoc = parser.parseFromString(html, 'text/html');
+                    const newContent = newDoc.querySelector('#main-content');
+                    if (newContent) {
+                        mainContent.innerHTML = newContent.innerHTML;
+                    }
+                })
+                .catch(err => console.log('Refresh error:', err));
+        }
+
+        // Démarre l'auto-refresh
+        setInterval(autoRefresh, REFRESH_INTERVAL);
+    </script>
+</body>
+
+</html>

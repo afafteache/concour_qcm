@@ -4,91 +4,123 @@
 
 {% block extra_css %}
 <style>
-  .exam-card { border-left: 4px solid; border-radius: .5rem; transition: transform .2s; }
-  .badge-envoye { background: #fef9ec; color: #d4a017; border: 1px solid #f6c23e; padding: 5px 14px; border-radius: 50px; font-size: .75rem; font-weight: 700; }
-  .badge-valide { background: #e6fff4; color: #1cc88a; border: 1px solid #1cc88a; padding: 5px 14px; border-radius: 50px; font-size: .75rem; font-weight: 700; }
-  .badge-brouillon { background: #f0f2f5; color: #718096; border: 1px solid #cbd5e0; padding: 5px 14px; border-radius: 50px; font-size: .75rem; font-weight: 700; }
+    .exam-card {
+        border-left: 4px solid;
+        border-radius: .5rem;
+        transition: transform .2s;
+    }
+
+    .badge-envoye {
+        background: #fef9ec;
+        color: #d4a017;
+        border: 1px solid #f6c23e;
+        padding: 5px 14px;
+        border-radius: 50px;
+        font-size: .75rem;
+        font-weight: 700;
+    }
+
+    .badge-valide {
+        background: #e6fff4;
+        color: #1cc88a;
+        border: 1px solid #1cc88a;
+        padding: 5px 14px;
+        border-radius: 50px;
+        font-size: .75rem;
+        font-weight: 700;
+    }
+
+    .badge-brouillon {
+        background: #f0f2f5;
+        color: #718096;
+        border: 1px solid #cbd5e0;
+        padding: 5px 14px;
+        border-radius: 50px;
+        font-size: .75rem;
+        font-weight: 700;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
-  <h1 class="h3 mb-0 text-gray-800 font-weight-bold">
-    <i class="fas fa-file-alt mr-2 text-primary"></i>Examens envoyés par les enseignants
-  </h1>
-  {% if nb_nouveaux > 0 %}
-  <span class="badge badge-danger px-3 py-2" style="font-size:.85rem;">
-    <i class="fas fa-bell mr-1"></i>{{ nb_nouveaux }} nouvel(aux) examen(s)
-  </span>
-  {% endif %}
+    <h1 class="h3 mb-0 text-gray-800 font-weight-bold">
+        <i class="fas fa-file-alt mr-2 text-primary"></i>Examens envoyés par les enseignants
+    </h1>
+    {% if nb_nouveaux > 0 %}
+    <span class="badge badge-danger px-3 py-2" style="font-size:.85rem;">
+        <i class="fas fa-bell mr-1"></i>{{ nb_nouveaux }} nouvel(aux) examen(s)
+    </span>
+    {% endif %}
 </div>
 
 {% if examens %}
-  {% for examen in examens %}
-  <div class="card exam-card shadow mb-3
+{% for examen in examens %}
+<div class="card exam-card shadow mb-3
     {% if examen.statut == 'envoye' %}border-warning
     {% elif examen.statut == 'valide' %}border-success
     {% else %}border-secondary{% endif %}">
     <div class="card-body">
-      <div class="row align-items-center">
-        <div class="col-md-7">
-          <h5 class="font-weight-bold text-gray-800 mb-1">{{ examen.titre }}</h5>
-          <div class="text-muted small">
-            <i class="fas fa-user-tie mr-1"></i><strong>{{ examen.cree_par.get_full_name }}</strong>
-            &nbsp;|&nbsp;
-            <i class="fas fa-question-circle mr-1"></i>{{ examen.questions.count }} question(s)
-            &nbsp;|&nbsp;
-            <i class="fas fa-calendar mr-1"></i>{{ examen.date_creation|date:"d/m/Y à H:i" }}
-            {% if examen.session %}
-            &nbsp;|&nbsp;<span class="text-success font-weight-bold"><i class="fas fa-link mr-1"></i>{{ examen.session.nom_session }}</span>
-            {% endif %}
-          </div>
+        <div class="row align-items-center">
+            <div class="col-md-7">
+                <h5 class="font-weight-bold text-gray-800 mb-1">{{ examen.titre }}</h5>
+                <div class="text-muted small">
+                    <i class="fas fa-user-tie mr-1"></i><strong>{{ examen.cree_par.get_full_name }}</strong>
+                    &nbsp;|&nbsp;
+                    <i class="fas fa-question-circle mr-1"></i>{{ examen.questions.count }} question(s)
+                    &nbsp;|&nbsp;
+                    <i class="fas fa-calendar mr-1"></i>{{ examen.date_creation|date:"d/m/Y à H:i" }}
+                    {% if examen.session %}
+                    &nbsp;|&nbsp;<span class="text-success font-weight-bold"><i class="fas fa-link mr-1"></i>{{
+                        examen.session.nom_session }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-5 text-right d-flex align-items-center justify-content-end" style="gap:8px;">
+                <span class="badge-{{ examen.statut }}">
+                    {% if examen.statut == 'envoye' %}<i class="fas fa-paper-plane mr-1"></i> Reçu
+                    {% elif examen.statut == 'valide' %}<i class="fas fa-check mr-1"></i> Validé
+                    {% else %}<i class="fas fa-pencil-alt mr-1"></i> Brouillon{% endif %}
+                </span>
+
+                {% if examen.statut == 'envoye' %}
+                <form method="POST" action="{% url 'admin_valider_examen' examen.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success btn-sm px-3"
+                        onclick="return confirm('Valider cet examen ?')">
+                        <i class="fas fa-check mr-1"></i> Valider
+                    </button>
+                </form>
+                {% endif %}
+
+                {% if examen.statut == 'valide' and not examen.session %}
+                <a href="{% url 'creer_session_pour_examen' examen.id %}" class="btn btn-primary btn-sm px-3">
+                    <i class="fas fa-calendar-plus mr-1"></i> Créer une session
+                </a>
+                {% endif %}
+
+                <!-- BOUTON SUPPRIMER -->
+                <form method="POST" action="{% url 'admin_supprimer_examen' examen.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm px-3"
+                        onclick="return confirm('Supprimer l\'examen &quot;{{ examen.titre }}&quot; ? Cette action est irréversible.')">
+                        <i class="fas fa-trash mr-1"></i> Supprimer
+                    </button>
+                </form>
+            </div>
         </div>
-        <div class="col-md-5 text-right d-flex align-items-center justify-content-end" style="gap:8px;">
-          <span class="badge-{{ examen.statut }}">
-            {% if examen.statut == 'envoye' %}<i class="fas fa-paper-plane mr-1"></i> Reçu
-            {% elif examen.statut == 'valide' %}<i class="fas fa-check mr-1"></i> Validé
-            {% else %}<i class="fas fa-pencil-alt mr-1"></i> Brouillon{% endif %}
-          </span>
-
-          {% if examen.statut == 'envoye' %}
-          <form method="POST" action="{% url 'admin_valider_examen' examen.id %}" style="display:inline;">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-success btn-sm px-3"
-                onclick="return confirm('Valider cet examen ?')">
-              <i class="fas fa-check mr-1"></i> Valider
-            </button>
-          </form>
-          {% endif %}
-
-          {% if examen.statut == 'valide' and not examen.session %}
-          <a href="{% url 'creer_session_pour_examen' examen.id %}" class="btn btn-primary btn-sm px-3">
-            <i class="fas fa-calendar-plus mr-1"></i> Créer une session
-          </a>
-          {% endif %}
-
-          <!-- BOUTON SUPPRIMER -->
-          <form method="POST" action="{% url 'admin_supprimer_examen' examen.id %}" style="display:inline;">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-danger btn-sm px-3"
-                onclick="return confirm('Supprimer l\'examen &quot;{{ examen.titre }}&quot; ? Cette action est irréversible.')">
-              <i class="fas fa-trash mr-1"></i> Supprimer
-            </button>
-          </form>
-        </div>
-      </div>
     </div>
-  </div>
-  {% endfor %}
+</div>
+{% endfor %}
 
 {% else %}
 <div class="card shadow border-left-info">
-  <div class="card-body text-center py-5">
-    <i class="fas fa-inbox fa-4x text-info mb-3"></i>
-    <h5 class="text-gray-700">Aucun examen reçu pour le moment</h5>
-    <p class="text-muted">Les examens envoyés par les enseignants apparaîtront ici.</p>
-  </div>
+    <div class="card-body text-center py-5">
+        <i class="fas fa-inbox fa-4x text-info mb-3"></i>
+        <h5 class="text-gray-700">Aucun examen reçu pour le moment</h5>
+        <p class="text-muted">Les examens envoyés par les enseignants apparaîtront ici.</p>
+    </div>
 </div>
 {% endif %}
 
