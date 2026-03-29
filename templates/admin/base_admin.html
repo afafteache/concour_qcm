@@ -117,17 +117,6 @@
                         <i class="fa fa-bars"></i>
                     </button>
 
-                    <!-- Indicateur de mise à jour en live -->
-                    <span id="live-indicator" class="ml-3 d-none d-sm-inline-flex align-items-center"
-                        style="font-size:.75rem;color:#28a745;gap:5px;">
-                        <span id="live-dot" style="
-            display:inline-block;width:8px;height:8px;
-            background:#28a745;border-radius:50%;
-            animation: pulse 2s infinite;">
-                        </span>
-                        En direct
-                    </span>
-
                     <ul class="navbar-nav ml-auto">
                         <div class="topbar-divider d-none d-sm-block"></div>
                         <li class="nav-item dropdown no-arrow">
@@ -150,10 +139,8 @@
                     </ul>
                 </nav>
 
-                <!-- ══ ZONE PRINCIPALE AUTO-REFRESH ══ -->
                 <div class="container-fluid px-4">
 
-                    <!-- Messages Django -->
                     {% if messages %}
                     {% for message in messages %}
                     <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
@@ -163,7 +150,6 @@
                     {% endfor %}
                     {% endif %}
 
-                    <!-- Contenu de la page — cette div est rechargée automatiquement -->
                     <div id="main-content">
                         {% block content %}{% endblock %}
                     </div>
@@ -181,43 +167,39 @@
         </div>
     </div>
 
-    <!-- ══ SCRIPTS ══ -->
     <script src="{% static 'vendor/jquery/jquery.js' %}"></script>
     <script src="{% static 'vendor/bootstrap/js/bootstrap.js' %}"></script>
     <script src="{% static 'js/sb-admin-2.js' %}"></script>
     {% block extra_js %}{% endblock %}
 
-    <!-- ══ AUTO-REFRESH SCRIPT ══ -->
     <style>
         @keyframes pulse {
-            0% {
-                opacity: 1;
-                transform: scale(1);
-            }
-
-            50% {
-                opacity: 0.4;
-                transform: scale(1.3);
-            }
-
-            100% {
-                opacity: 1;
-                transform: scale(1);
-            }
+            0%   { opacity: 1; transform: scale(1);   }
+            50%  { opacity: 0.4; transform: scale(1.3); }
+            100% { opacity: 1; transform: scale(1);   }
         }
     </style>
 
     <script>
-        const REFRESH_INTERVAL = 10000; // 10 secondes
+        const REFRESH_INTERVAL = 10000;
         let refreshTimer = null;
 
+        function isFormPage() {
+            return document.querySelector('form') !== null;
+        }
+
         function autoRefresh() {
+            if (isFormPage()) return;
+
+            // Si countdown est à zéro, recharger complètement
+            const countdown = document.getElementById('countdown');
+            if (countdown && countdown.textContent === '00:00:00') {
+                window.location.href = window.location.href;
+                return;
+            }
+
             const mainContent = document.querySelector('#main-content');
             if (!mainContent) return;
-
-            // Indique visuellement le chargement
-            const dot = document.getElementById('live-dot');
-            if (dot) dot.style.background = '#ffc107'; // orange pendant le fetch
 
             fetch(window.location.href, {
                 headers: {
@@ -225,50 +207,36 @@
                     'X-Auto-Refresh': 'true'
                 }
             })
-                .then(response => {
-                    if (!response.ok) throw new Error('Erreur réseau');
-                    return response.text();
-                })
-                .then(html => {
-                    const parser = new DOMParser();
-                    const newDoc = parser.parseFromString(html, 'text/html');
-                    const newContent = newDoc.querySelector('#main-content');
-
-                    if (newContent) {
-                        mainContent.innerHTML = newContent.innerHTML;
-
-                        // Ré-initialise les plugins jQuery après refresh
-                        if (typeof $.fn.DataTable !== 'undefined') {
-                            $('.dataTable').DataTable();
-                        }
+            .then(response => {
+                if (!response.ok) throw new Error('Erreur réseau');
+                return response.text();
+            })
+            .then(html => {
+                const parser = new DOMParser();
+                const newDoc = parser.parseFromString(html, 'text/html');
+                const newContent = newDoc.querySelector('#main-content');
+                if (newContent) {
+                    mainContent.innerHTML = newContent.innerHTML;
+                    if (typeof $.fn.DataTable !== 'undefined') {
+                        $('.dataTable').DataTable();
                     }
-
-                    // Remet le point vert = tout va bien
-                    if (dot) dot.style.background = '#28a745';
-                })
-                .catch(err => {
-                    console.warn('Auto-refresh échoué:', err);
-                    // Point rouge = problème
-                    if (dot) dot.style.background = '#dc3545';
-                });
+                }
+            })
+            .catch(err => {
+                console.warn('Auto-refresh échoué:', err);
+            });
         }
 
-        // Lance l'auto-refresh au chargement de la page
         document.addEventListener('DOMContentLoaded', function () {
-            // Affiche l'indicateur "En direct"
-            const indicator = document.getElementById('live-indicator');
-            if (indicator) indicator.classList.remove('d-none');
-
-            // Lance le timer
-            refreshTimer = setInterval(autoRefresh, REFRESH_INTERVAL);
+            if (!isFormPage()) {
+                refreshTimer = setInterval(autoRefresh, REFRESH_INTERVAL);
+            }
         });
 
-        // Arrête le refresh si l'utilisateur quitte la page
         window.addEventListener('beforeunload', function () {
             if (refreshTimer) clearInterval(refreshTimer);
         });
     </script>
 
 </body>
-
 </html>

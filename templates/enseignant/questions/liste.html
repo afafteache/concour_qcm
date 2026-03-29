@@ -154,11 +154,13 @@
                     </span>
                     <span class="date-txt">{{ q.date_creation|date:"d/m/Y" }}</span>
                     <span class="actions">
+                        <!-- Modifier -->
                         <a href="{% url 'question_modifier' q.id %}" class="btn-edit" title="Modifier">
                             <i class="fas fa-edit"></i>
                         </a>
-                        <a href="{% url 'question_supprimer' q.id %}" class="btn-del" title="Supprimer"
-                            onclick="return confirm('Supprimer cette question définitivement ?')">
+                        <!-- Supprimer : redirige vers la page de confirmation -->
+                        <a href="{% url 'question_confirmer_suppression' q.id %}?next=question_liste"
+                           class="btn-del" title="Supprimer">
                             <i class="fas fa-trash"></i>
                         </a>
                     </span>

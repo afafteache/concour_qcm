@@ -1,6 +1,18 @@
 {% extends 'admin/base_admin.html' %}
 {% block title %}{{ action }} Session – Smart QCM{% endblock %}
 {% block nav_sessions %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+.counter-group { display: flex; align-items: center; gap: 0; }
+.counter-group input { text-align: center; width: 80px; border-radius: 0; }
+.counter-group .btn-counter { width: 38px; height: 38px; font-size: 18px; font-weight: bold; border: 1px solid #d1d3e2; background: #f8f9fc; color: #4e73df; display: flex; align-items: center; justify-content: center; cursor: pointer; user-select: none; }
+.counter-group .btn-counter:first-child { border-radius: 4px 0 0 4px; }
+.counter-group .btn-counter:last-child  { border-radius: 0 4px 4px 0; }
+.counter-group .btn-counter:hover { background: #4e73df; color: white; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="d-flex align-items-center mb-4">
   <a href="{% url 'session_liste' %}" class="btn btn-sm btn-outline-secondary mr-3"><i class="fas fa-arrow-left"></i></a>
@@ -8,27 +20,31 @@
 </div>
 <div class="card shadow" style="max-width:650px;">
   <div class="card-body p-4">
-    <form method="POST">
+    <form method="POST" novalidate autocomplete="off">
       {% csrf_token %}
+
       <div class="form-group">
         <label><strong>Nom de la session *</strong></label>
         <input type="text" class="form-control" name="nom_session"
-               value="{{ session.nom_session|default:'' }}" required placeholder="Ex: Session Janvier 2026">
+               value="{{ session.nom_session|default:'' }}"
+               placeholder="Ex: Session Janvier 2026">
       </div>
+
       <div class="form-group">
         <label><strong>Concours *</strong></label>
-        <select class="form-control" name="concours" required>
+        <select class="form-control" name="concours">
           <option value="">— Sélectionner —</option>
           {% for c in concours_list %}
           <option value="{{ c.pk }}" {% if session.concours_id == c.pk %}selected{% endif %}>{{ c.titre }}</option>
           {% endfor %}
         </select>
       </div>
+
       <div class="form-row">
         <div class="form-group col-md-6">
           <label><strong>Début *</strong></label>
           <input type="datetime-local" class="form-control" name="date_heure_debut"
-                 value="{{ session.date_heure_debut|date:'Y-m-d\TH:i'|default:'' }}" required>
+                 value="{{ session.date_heure_debut|date:'Y-m-d\TH:i'|default:'' }}">
         </div>
         <div class="form-group col-md-6">
           <label><strong>Fin</strong></label>
@@ -36,24 +52,40 @@
                  value="{{ session.date_heure_fin|date:'Y-m-d\TH:i'|default:'' }}">
         </div>
       </div>
+
       <div class="form-row">
         <div class="form-group col-md-6">
-          <label><strong>Durée (minutes)</strong></label>
-          <input type="number" class="form-control" name="duree_minutes" min="1"
-                 value="{{ session.duree_minutes|default:60 }}">
+          <label><strong>Durée (minutes) *</strong></label>
+          <div class="counter-group">
+            <button type="button" class="btn-counter" onclick="changeVal('duree_minutes', -5)">−</button>
+            <input type="text" class="form-control" name="duree_minutes" id="duree_minutes"
+                   value="{{ session.duree_minutes|default:60 }}">
+            <button type="button" class="btn-counter" onclick="changeVal('duree_minutes', 5)">+</button>
+          </div>
         </div>
-        {% if session %}
         <div class="form-group col-md-6">
-          <label><strong>État</strong></label>
-          <select class="form-control" name="etat">
-            <option value="planifiee" {% if session.etat == 'planifiee' %}selected{% endif %}>Planifiée</option>
-            <option value="en_cours"  {% if session.etat == 'en_cours'  %}selected{% endif %}>En cours</option>
-            <option value="terminee"  {% if session.etat == 'terminee'  %}selected{% endif %}>Terminée</option>
-            <option value="annulee"   {% if session.etat == 'annulee'   %}selected{% endif %}>Annulée</option>
-          </select>
+          <label><strong>Nombre de questions *</strong></label>
+          <div class="counter-group">
+            <button type="button" class="btn-counter" onclick="changeVal('nombre_questions', -1)">−</button>
+            <input type="text" class="form-control" name="nombre_questions" id="nombre_questions"
+                   value="{{ session.nombre_questions|default:20 }}">
+            <button type="button" class="btn-counter" onclick="changeVal('nombre_questions', 1)">+</button>
+          </div>
         </div>
-        {% endif %}
       </div>
+
+      {% if session %}
+      <div class="form-group">
+        <label><strong>État</strong></label>
+        <select class="form-control" name="etat">
+          <option value="planifiee" {% if session.etat == 'planifiee' %}selected{% endif %}>Planifiée</option>
+          <option value="en_cours"  {% if session.etat == 'en_cours'  %}selected{% endif %}>En cours</option>
+          <option value="terminee"  {% if session.etat == 'terminee'  %}selected{% endif %}>Terminée</option>
+          <option value="annulee"   {% if session.etat == 'annulee'   %}selected{% endif %}>Annulée</option>
+        </select>
+      </div>
+      {% endif %}
+
       <div class="d-flex justify-content-end mt-3">
         <a href="{% url 'session_liste' %}" class="btn btn-secondary mr-2">Annuler</a>
         <button type="submit" class="btn btn-primary"><i class="fas fa-save mr-1"></i>{{ action }}</button>
@@ -61,4 +93,16 @@
     </form>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function changeVal(fieldId, delta) {
+    var input = document.getElementById(fieldId);
+    var val = parseInt(input.value) || 0;
+    val += delta;
+    if (val < 1) val = 1;
+    input.value = val;
+}
+</script>
 {% endblock %}

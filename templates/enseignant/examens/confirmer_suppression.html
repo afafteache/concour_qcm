@@ -1,0 +1,40 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Smart QCM — Confirmer la suppression</title>
+    <link href="{% static 'vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/sb-admin-2.css' %}" rel="stylesheet">
+    <style>
+        body { background: #f0f2f8; font-family: 'Nunito', sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+        .confirm-box { background: white; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.10); padding: 40px 48px; max-width: 480px; width: 100%; text-align: center; }
+        .icon-danger { width: 70px; height: 70px; border-radius: 50%; background: #fff5f5; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+        .icon-danger i { font-size: 2rem; color: #e74a3b; }
+        h4 { font-size: 18px; font-weight: 800; color: #2d3748; margin-bottom: 10px; }
+        p { font-size: 14px; color: #718096; margin-bottom: 28px; }
+        p strong { color: #2d3748; }
+        .btn-confirm { padding: 11px 32px; background: #e74a3b; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; margin-right: 10px; }
+        .btn-confirm:hover { background: #c0392b; }
+        .btn-cancel { padding: 11px 32px; background: #f0f2f5; color: #4a5568; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; text-decoration: none; display: inline-block; }
+        .btn-cancel:hover { background: #e2e8f0; color: #2d3748; }
+    </style>
+</head>
+<body>
+<div class="confirm-box">
+    <div class="icon-danger">
+        <i class="fas fa-exclamation-triangle"></i>
+    </div>
+    <h4>Confirmer la suppression</h4>
+    <p>Êtes-vous sûr de vouloir supprimer l'examen<br><strong>« {{ examen.titre }} »</strong> ?<br>
+    <span style="color:#e74a3b;font-size:12px;">Cette action est irréversible.</span></p>
+    <form method="POST" action="{% url 'enseignant_supprimer_examen' examen.id %}">
+        {% csrf_token %}
+        <button type="submit" class="btn-confirm">
+            <i class="fas fa-trash mr-1"></i> Oui, supprimer
+        </button>
+        <a href="{% url 'mes_examens' %}" class="btn-cancel">Annuler</a>
+    </form>
+</div>
+</body>
+</html>

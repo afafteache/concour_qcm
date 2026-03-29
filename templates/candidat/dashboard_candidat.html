@@ -1,4 +1,3 @@
-{% extends "base.html" %}
 {% load static %}
 <!DOCTYPE html>
 <html lang="fr">
@@ -10,38 +9,13 @@
     <link href="{% static 'vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet">
     <link href="{% static 'css/sb-admin-2.css' %}" rel="stylesheet">
     <style>
-        body {
-            background: #f4f6fc;
-        }
-
-        .candidat-header {
-            background: linear-gradient(135deg, #1cc88a, #13855c);
-            border-radius: .5rem;
-        }
-
-        .exam-card {
-            border-left: 4px solid #1cc88a;
-            transition: transform .2s;
-        }
-
-        .exam-card:hover {
-            transform: translateY(-3px);
-        }
-
-        .exam-card-retard {
-            border-left: 4px solid #e74a3b;
-        }
-
-        .countdown-badge {
-            font-size: 1.4rem;
-            font-weight: 700;
-            font-family: monospace;
-            color: #e74a3b;
-        }
-
-        .btn-commencer-disabled {
-            cursor: not-allowed;
-        }
+        body { background: #f4f6fc; }
+        .candidat-header { background: linear-gradient(135deg, #1cc88a, #13855c); border-radius: .5rem; }
+        .exam-card { border-left: 4px solid #1cc88a; transition: transform .2s; }
+        .exam-card:hover { transform: translateY(-3px); }
+        .exam-card-retard { border-left: 4px solid #e74a3b; }
+        .countdown-badge { font-size: 1.4rem; font-weight: 700; font-family: monospace; color: #e74a3b; }
+        .btn-commencer-disabled { cursor: not-allowed; }
     </style>
 </head>
 
@@ -70,8 +44,7 @@
             <div class="card-body py-4 px-5">
                 <div class="row align-items-center">
                     <div class="col-auto">
-                        <div
-                            style="width:70px;height:70px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2rem;">
+                        <div style="width:70px;height:70px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2rem;">
                             <i class="fas fa-user-graduate"></i>
                         </div>
                     </div>
@@ -105,7 +78,6 @@
                     <div class="card-body">
 
                         {% if examens_passes_ids and session_encore_active %}
-                        <!-- Candidat a déjà passé -->
                         <div class="text-center py-5">
                             <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
                             <h6 class="font-weight-bold text-success mb-2">Vous avez déjà passé cet examen !</h6>
@@ -113,7 +85,6 @@
                         </div>
 
                         {% elif examens_disponibles %}
-                        <!-- Examen disponible — dans les 5 minutes -->
                         {% for examen in examens_disponibles %}
                         <div class="card exam-card shadow-sm mb-3">
                             <div class="card-body">
@@ -140,7 +111,6 @@
                         {% endfor %}
 
                         {% elif examens_en_retard %}
-                        <!-- En retard — bouton gris -->
                         {% for examen in examens_en_retard %}
                         <div class="card exam-card-retard shadow-sm mb-3">
                             <div class="card-body">
@@ -166,7 +136,6 @@
                         {% endfor %}
 
                         {% elif session_prochaine and not session_prochaine.examen_lance %}
-                        <!-- Session planifiée non encore lancée -->
                         <div class="text-center py-4">
                             <i class="fas fa-hourglass-half fa-3x text-warning mb-3"></i>
                             <h6 class="font-weight-bold text-gray-700 mb-2">Examen prévu :</h6>
@@ -176,7 +145,7 @@
                             </p>
                             <div class="mb-3">
                                 <div class="text-muted small mb-1">Temps restant avant le début</div>
-                                <div class="countdown-badge" id="countdown-candidat">--:--:--</div>
+                                <div class="countdown-badge" id="countdown-candidat">00:00:00</div>
                             </div>
                             <button class="btn btn-secondary btn-lg px-5 btn-commencer-disabled" disabled>
                                 <i class="fas fa-lock mr-2"></i>Examen pas encore lancé
@@ -188,7 +157,6 @@
                         </div>
 
                         {% else %}
-                        <!-- Aucun examen -->
                         <div class="text-center py-5 text-muted">
                             <i class="fas fa-inbox fa-3x mb-3"></i>
                             <p>Aucun examen disponible pour le moment.</p>
@@ -206,23 +174,21 @@
     <script src="{% static 'vendor/bootstrap/js/bootstrap.js' %}"></script>
     <script>
         (function () {
-            const secondes = {{ secondes_avant|default: 0
-        }};
-        const el = document.getElementById('countdown-candidat');
-        if (!el || secondes <= 0) return;
-        let reste = secondes;
-        function tick() {
-            if (reste < 0) { location.reload(); return; }
-            const h = String(Math.floor(reste / 3600)).padStart(2, '0');
-            const m = String(Math.floor((reste % 3600) / 60)).padStart(2, '0');
-            const s = String(reste % 60).padStart(2, '0');
-            el.textContent = h + ':' + m + ':' + s;
-            reste--;
-            setTimeout(tick, 1000);
-        }
-        tick();
-}) ();
+            const secondes = {{ secondes_avant|default:0 }};
+            const el = document.getElementById('countdown-candidat');
+            if (!el || secondes <= 0) return;
+            let reste = secondes;
+            function tick() {
+                if (reste < 0) { location.reload(); return; }
+                const h = String(Math.floor(reste / 3600)).padStart(2, '0');
+                const m = String(Math.floor((reste % 3600) / 60)).padStart(2, '0');
+                const s = String(reste % 60).padStart(2, '0');
+                el.textContent = h + ':' + m + ':' + s;
+                reste--;
+                setTimeout(tick, 1000);
+            }
+            tick();
+        })();
     </script>
 </body>
-
 </html>

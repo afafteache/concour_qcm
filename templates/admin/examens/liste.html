@@ -72,42 +72,44 @@
                     &nbsp;|&nbsp;
                     <i class="fas fa-calendar mr-1"></i>{{ examen.date_creation|date:"d/m/Y à H:i" }}
                     {% if examen.session %}
-                    &nbsp;|&nbsp;<span class="text-success font-weight-bold"><i class="fas fa-link mr-1"></i>{{
-                        examen.session.nom_session }}</span>
+                    &nbsp;|&nbsp;
+                    <span class="text-success font-weight-bold">
+                        <i class="fas fa-link mr-1"></i>{{ examen.session.nom_session }}
+                    </span>
                     {% endif %}
                 </div>
             </div>
             <div class="col-md-5 text-right d-flex align-items-center justify-content-end" style="gap:8px;">
+
+                <!-- BADGE STATUT -->
                 <span class="badge-{{ examen.statut }}">
                     {% if examen.statut == 'envoye' %}<i class="fas fa-paper-plane mr-1"></i> Reçu
                     {% elif examen.statut == 'valide' %}<i class="fas fa-check mr-1"></i> Validé
                     {% else %}<i class="fas fa-pencil-alt mr-1"></i> Brouillon{% endif %}
                 </span>
 
+                <!-- BOUTON VALIDER (uniquement si statut envoye) -->
                 {% if examen.statut == 'envoye' %}
                 <form method="POST" action="{% url 'admin_valider_examen' examen.id %}" style="display:inline;">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-success btn-sm px-3"
-                        onclick="return confirm('Valider cet examen ?')">
+                    <button type="submit" class="btn btn-success btn-sm px-3">
                         <i class="fas fa-check mr-1"></i> Valider
                     </button>
                 </form>
                 {% endif %}
 
+                <!-- BOUTON CRÉER UNE SESSION (uniquement si validé et pas encore de session) -->
                 {% if examen.statut == 'valide' and not examen.session %}
                 <a href="{% url 'creer_session_pour_examen' examen.id %}" class="btn btn-primary btn-sm px-3">
                     <i class="fas fa-calendar-plus mr-1"></i> Créer une session
                 </a>
                 {% endif %}
 
-                <!-- BOUTON SUPPRIMER -->
-                <form method="POST" action="{% url 'admin_supprimer_examen' examen.id %}" style="display:inline;">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-danger btn-sm px-3"
-                        onclick="return confirm('Supprimer l\'examen &quot;{{ examen.titre }}&quot; ? Cette action est irréversible.')">
-                        <i class="fas fa-trash mr-1"></i> Supprimer
-                    </button>
-                </form>
+                <!-- BOUTON SUPPRIMER — redirige vers la page de confirmation -->
+                <a href="{% url 'admin_confirmer_suppression_examen' examen.id %}" class="btn btn-danger btn-sm px-3">
+                    <i class="fas fa-trash mr-1"></i> Supprimer
+                </a>
+
             </div>
         </div>
     </div>

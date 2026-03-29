@@ -71,13 +71,35 @@ def question_modifier(request, pk):
     })
 
 
+# ═══════════════════════════════════════════════════════
+#  CONFIRMER SUPPRESSION QUESTION
+# ═══════════════════════════════════════════════════════
+
+@login_required(login_url='login')
+@role_required('enseignant')
+def question_confirmer_suppression(request, pk):
+    question = get_object_or_404(Question, pk=pk, cree_par=request.user)
+    # next indique où revenir après suppression (question_liste ou examen_creer)
+    next_url = request.GET.get('next', 'question_liste')
+    return render(request, 'enseignant/questions/confirmer_suppression.html', {
+        'question': question,
+        'next': next_url,
+    })
+
+
+# ═══════════════════════════════════════════════════════
+#  SUPPRIMER QUESTION
+# ═══════════════════════════════════════════════════════
+
 @login_required(login_url='login')
 @role_required('enseignant')
 def question_supprimer(request, pk):
     question = get_object_or_404(Question, pk=pk, cree_par=request.user)
-    question.delete()
-    messages.success(request, 'Question supprimée.')
-    return redirect('question_liste')
+    if request.method == 'POST':
+        question.delete()
+        messages.success(request, 'Question supprimée.')
+    next_url = request.POST.get('next') or request.GET.get('next') or 'question_liste'
+    return redirect(next_url)
 
 
 # ═══════════════════════════════════════════════════════
@@ -87,7 +109,6 @@ def question_supprimer(request, pk):
 @login_required(login_url='login')
 @role_required('enseignant')
 def examen_creer(request):
-    """L'enseignant crée un examen en sélectionnant ses questions."""
     from examens.models import Examen
     questions = Question.objects.filter(cree_par=request.user).prefetch_related('choix_set').order_by('-date_creation')
 
@@ -119,7 +140,6 @@ def examen_creer(request):
 @login_required(login_url='login')
 @role_required('enseignant')
 def mes_examens(request):
-    """Liste des examens créés par l'enseignant."""
     from examens.models import Examen
     examens = Examen.objects.filter(cree_par=request.user).order_by('-date_creation')
     return render(request, 'enseignant/examens/liste.html', {'examens': examens})

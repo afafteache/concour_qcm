@@ -125,13 +125,9 @@
                     {% else %}<i class="fas fa-check mr-1"></i> Validé
                     {% endif %}
                 </span>
-                <form method="POST" action="{% url 'enseignant_supprimer_examen' examen.id %}" style="display:inline;">
-                    {% csrf_token %}
-                    <button type="submit" class="btn-del"
-                        onclick="return confirm('Supprimer l\'examen &quot;{{ examen.titre }}&quot; ?')">
-                        <i class="fas fa-trash mr-1"></i> Supprimer
-                    </button>
-                </form>
+                <a href="{% url 'enseignant_confirmer_suppression_examen' examen.id %}" class="btn-del">
+                <i class="fas fa-trash mr-1"></i> Supprimer
+                </a>
             </div>
         </div>
         {% empty %}

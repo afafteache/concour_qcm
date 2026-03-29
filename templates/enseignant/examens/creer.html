@@ -47,8 +47,6 @@
         .form-group label { display: block; font-size: 12px; font-weight: 700; color: #4a5568; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
         .form-control-custom { width: 100%; padding: 10px 14px; border: 1px solid #e3e6f0; border-radius: 8px; font-size: 14px; color: #2d3748; outline: none; transition: border 0.15s; font-family: inherit; }
         .form-control-custom:focus { border-color: #4e73df; box-shadow: 0 0 0 3px rgba(78,115,223,0.1); }
-
-        /* SÉLECTION QUESTIONS */
         .search-questions { width: 100%; padding: 10px 14px; border: 1px solid #e3e6f0; border-radius: 8px; font-size: 13px; outline: none; margin-bottom: 14px; font-family: inherit; }
         .search-questions:focus { border-color: #4e73df; }
         .questions-grid { display: flex; flex-direction: column; gap: 8px; max-height: 480px; overflow-y: auto; padding-right: 4px; }
@@ -61,8 +59,8 @@
         .q-check-item .q-meta { font-size: 11px; color: #a0aec0; }
         .q-check-item .q-bonne { font-size: 11px; color: #1cc88a; font-weight: 700; margin-top: 3px; }
         .compteur { font-size: 13px; font-weight: 700; color: #4e73df; margin-bottom: 10px; }
-
-        /* BOUTONS */
+        .q-delete-btn { background: none; border: none; color: #e53e3e; cursor: pointer; padding: 6px 8px; border-radius: 6px; font-size: 13px; flex-shrink: 0; transition: background 0.15s; align-self: center; text-decoration: none; display: flex; align-items: center; }
+        .q-delete-btn:hover { background: #fff5f5; color: #c53030; }
         .form-actions { display: flex; justify-content: space-between; align-items: center; }
         .btn-cancel { padding: 10px 24px; border: 1px solid #e3e6f0; border-radius: 8px; background: white; color: #718096; font-size: 13px; font-weight: 700; text-decoration: none; }
         .btn-send { padding: 12px 32px; background: #4e73df; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background 0.15s; }
@@ -70,8 +68,6 @@
         .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; font-weight: 600; }
         .alert-danger { background: #fff5f5; border: 1px solid #fc8181; color: #c53030; }
         .alert-success { background: #f0fff4; border: 1px solid #9ae6b4; color: #276749; }
-
-        /* AUCUNE QUESTION */
         .empty-qs { text-align: center; padding: 48px; color: #a0aec0; }
         .empty-qs i { font-size: 2.5rem; display: block; margin-bottom: 14px; }
         .empty-qs a { color: #4e73df; font-weight: 700; }
@@ -168,6 +164,15 @@
                                 {% endif %}
                             {% endfor %}
                         </div>
+
+                        <!-- BOUTON SUPPRIMER LA QUESTION -->
+                        <a href="{% url 'question_confirmer_suppression' q.pk %}?next=examen_creer"
+                           class="q-delete-btn"
+                           title="Supprimer cette question"
+                           onclick="event.stopPropagation()">
+                            <i class="fas fa-trash-alt"></i>
+                        </a>
+
                     </div>
                     {% endfor %}
                 </div>
@@ -202,7 +207,6 @@ function toggleQ(item) {
     majCompteur();
 }
 
-// Sync checkbox click direct
 document.querySelectorAll('.q-check-item input[type=checkbox]').forEach(function(chk) {
     chk.addEventListener('change', function() {
         this.closest('.q-check-item').classList.toggle('checked', this.checked);
@@ -215,7 +219,6 @@ function majCompteur() {
     document.getElementById('compteur').textContent = n + ' question(s) sélectionnée(s)';
 }
 
-// Recherche
 document.getElementById('searchQ') && document.getElementById('searchQ').addEventListener('input', function() {
     var val = this.value.toLowerCase();
     document.querySelectorAll('.q-check-item').forEach(function(item) {
@@ -223,7 +226,6 @@ document.getElementById('searchQ') && document.getElementById('searchQ').addEven
     });
 });
 
-// Validation
 document.getElementById('form-examen').addEventListener('submit', function(e) {
     const n = document.querySelectorAll('.q-check-item input[type=checkbox]:checked').length;
     if (n === 0) {

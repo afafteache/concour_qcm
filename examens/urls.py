@@ -12,7 +12,9 @@ urlpatterns = [
     path('admin/examens/<int:examen_id>/valider/', views.admin_valider_examen, name='admin_valider_examen'),
     path('admin/examens/<int:examen_id>/session/', views.creer_session_pour_examen, name='creer_session_pour_examen'),
     path('admin/examens/<int:examen_id>/supprimer/', views.admin_supprimer_examen, name='admin_supprimer_examen'),
+    path('admin/examens/<int:examen_id>/confirmer-suppression/', views.admin_confirmer_suppression_examen, name='admin_confirmer_suppression_examen'),
 
     # Enseignant
+    path('enseignant/examen/<int:examen_id>/confirmer-suppression/', views.enseignant_confirmer_suppression_examen, name='enseignant_confirmer_suppression_examen'),
     path('enseignant/examens/<int:examen_id>/supprimer/', views.enseignant_supprimer_examen, name='enseignant_supprimer_examen'),
 ]

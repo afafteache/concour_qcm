@@ -6,42 +6,28 @@
   <a href="{% url 'concours_liste' %}" class="btn btn-sm btn-outline-secondary mr-3"><i class="fas fa-arrow-left"></i></a>
   <h4 class="mb-0 font-weight-bold text-primary"><i class="fas fa-trophy mr-2"></i>{{ action }} un concours</h4>
 </div>
-<div class="card shadow" style="max-width:700px;">
+<div class="card shadow" style="max-width:600px;">
   <div class="card-body p-4">
-    <form method="POST">
+    <form method="POST" novalidate autocomplete="off">
       {% csrf_token %}
       <div class="form-group">
         <label><strong>Titre *</strong></label>
-        <input type="text" class="form-control" name="titre" value="{{ concours.titre|default:'' }}" required>
+        <input type="text" class="form-control" name="titre"
+          value="{% if post_data %}{{ post_data.titre }}{% elif concours %}{{ concours.titre }}{% endif %}"
+          placeholder="Ex: Concours Informatique 2026">
       </div>
       <div class="form-group">
-        <label><strong>Description</strong></label>
-        <textarea class="form-control" name="description" rows="3">{{ concours.description|default:'' }}</textarea>
-      </div>
-      <div class="form-row">
-        <div class="form-group col-md-6">
-          <label><strong>Date *</strong></label>
-          <input type="date" class="form-control" name="date" value="{{ concours.date|date:'Y-m-d'|default:'' }}" required>
-        </div>
-        <div class="form-group col-md-6">
-          <label><strong>Module</strong></label>
-          <select class="form-control" name="module">
-            <option value="">— Aucun —</option>
-            {% for m in modules %}
-            <option value="{{ m.pk }}" {% if concours.module_id == m.pk %}selected{% endif %}>{{ m.nom }}</option>
-            {% endfor %}
-          </select>
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group col-md-6">
-          <label><strong>Nombre de questions</strong></label>
-          <input type="number" class="form-control" name="nombre_questions" min="1" value="{{ concours.nombre_questions|default:20 }}">
-        </div>
-        <div class="form-group col-md-6">
-          <label><strong>Durée (minutes)</strong></label>
-          <input type="number" class="form-control" name="duree_minutes" min="1" value="{{ concours.duree_minutes|default:60 }}">
-        </div>
+        <label><strong>Module</strong></label>
+        <select class="form-control" name="module">
+          <option value="">— Aucun —</option>
+          {% for m in modules %}
+          <option value="{{ m.pk }}"
+            {% if post_data.module == m.pk|stringformat:"s" %}selected
+            {% elif concours.module_id == m.pk %}selected{% endif %}>
+            {{ m.nom }}
+          </option>
+          {% endfor %}
+        </select>
       </div>
       <div class="d-flex justify-content-end mt-3">
         <a href="{% url 'concours_liste' %}" class="btn btn-secondary mr-2">Annuler</a>

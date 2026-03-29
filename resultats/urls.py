@@ -6,4 +6,5 @@ urlpatterns = [
     path('candidats/import/', views.import_candidats_excel, name='import_candidats'),
     path('candidats/modele/', views.telecharger_modele_excel, name='modele_excel'),
     path('candidats/<int:profil_id>/supprimer/', views.supprimer_candidat, name='supprimer_candidat'),
+    path('candidats/<int:profil_id>/confirmer-suppression/', views.confirmer_suppression_candidat, name='confirmer_suppression_candidat'),
 ]

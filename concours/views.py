@@ -76,17 +76,23 @@ def concours_creer(request):
     modules = Module.objects.all()
     if request.method == 'POST':
         titre            = request.POST.get('titre', '').strip()
-        description      = request.POST.get('description', '').strip()
-        date             = request.POST.get('date', '')
         module_id        = request.POST.get('module')
         nombre_questions = request.POST.get('nombre_questions', 20)
         duree_minutes    = request.POST.get('duree_minutes', 60)
 
-        if not titre or not date:
-            messages.error(request, 'Le titre et la date sont obligatoires.')
+        if not titre:
+            messages.error(request, 'Le titre est obligatoire.')
+            return render(request, 'admin/concours/form.html', {
+                'modules': modules,
+                'action': 'Créer',
+                'concours': None,
+                'post_data': request.POST,
+            })
         else:
+            from django.utils import timezone
             Concours.objects.create(
-                titre=titre, description=description, date=date,
+                titre=titre,
+                date=timezone.now().date(),
                 module_id=module_id if module_id else None,
                 nombre_questions=nombre_questions,
                 duree_minutes=duree_minutes,
@@ -94,7 +100,13 @@ def concours_creer(request):
             )
             messages.success(request, f'Concours "{titre}" créé.')
             return redirect('concours_liste')
-    return render(request, 'admin/concours/form.html', {'modules': modules, 'action': 'Créer'})
+
+    return render(request, 'admin/concours/form.html', {
+        'modules': modules,
+        'action': 'Créer',
+        'concours': None,
+        'post_data': None,
+    })
 
 
 @login_required(login_url='login')
@@ -104,7 +116,6 @@ def concours_modifier(request, pk):
     modules  = Module.objects.all()
     if request.method == 'POST':
         concours.titre            = request.POST.get('titre', '').strip()
-        concours.description      = request.POST.get('description', '').strip()
         concours.date             = request.POST.get('date', '')
         module_id                 = request.POST.get('module')
         concours.module_id        = module_id if module_id else None
@@ -117,7 +128,10 @@ def concours_modifier(request, pk):
             messages.success(request, 'Concours modifié.')
             return redirect('concours_liste')
     return render(request, 'admin/concours/form.html', {
-        'modules': modules, 'concours': concours, 'action': 'Modifier'
+        'modules': modules,
+        'concours': concours,
+        'action': 'Modifier',
+        'post_data': None,
     })
 
 
@@ -149,11 +163,11 @@ def session_liste(request):
 def session_creer(request):
     concours_list = Concours.objects.all()
     if request.method == 'POST':
-        nom_session      = request.POST.get('nom_session', '').strip()
-        concours_id      = request.POST.get('concours')
-        date_debut       = request.POST.get('date_heure_debut', '')
-        date_fin         = request.POST.get('date_heure_fin', '')
-        duree_minutes    = request.POST.get('duree_minutes', 60)
+        nom_session   = request.POST.get('nom_session', '').strip()
+        concours_id   = request.POST.get('concours')
+        date_debut    = request.POST.get('date_heure_debut', '')
+        date_fin      = request.POST.get('date_heure_fin', '')
+        duree_minutes = request.POST.get('duree_minutes', 60)
 
         if not nom_session or not concours_id or not date_debut:
             messages.error(request, 'Tous les champs obligatoires doivent être remplis.')
@@ -176,12 +190,12 @@ def session_modifier(request, pk):
     session       = get_object_or_404(SessionConcours, pk=pk)
     concours_list = Concours.objects.all()
     if request.method == 'POST':
-        session.nom_session    = request.POST.get('nom_session', '').strip()
-        session.concours_id    = request.POST.get('concours')
+        session.nom_session      = request.POST.get('nom_session', '').strip()
+        session.concours_id      = request.POST.get('concours')
         session.date_heure_debut = request.POST.get('date_heure_debut', '')
         session.date_heure_fin   = request.POST.get('date_heure_fin', '')
-        session.duree_minutes  = request.POST.get('duree_minutes', 60)
-        session.etat           = request.POST.get('etat', 'planifiee')
+        session.duree_minutes    = request.POST.get('duree_minutes', 60)
+        session.etat             = request.POST.get('etat', 'planifiee')
         session.save()
         messages.success(request, 'Session modifiée.')
         return redirect('session_liste')
@@ -204,7 +218,6 @@ def session_supprimer(request, pk):
 @login_required(login_url='login')
 @role_required('admin')
 def session_lancer(request, pk):
-    """Lance officiellement l'examen d'une session."""
     session = get_object_or_404(SessionConcours, pk=pk)
     now     = timezone.now()
 
@@ -213,11 +226,14 @@ def session_lancer(request, pk):
     elif now < session.date_heure_debut:
         messages.error(request, "L'heure de début n'est pas encore atteinte.")
     else:
+        from datetime import timedelta
         session.examen_lance   = True
         session.etat           = 'en_cours'
         session.date_lancement = now
         session.lance_par      = request.user
+        # Recalcule la fin à partir du moment du lancement
+        session.date_heure_fin = now + timedelta(minutes=session.duree_minutes)
         session.save()
-        messages.success(request, f'Examen lancé ! Les candidats peuvent maintenant accéder à l\'examen.')
+        messages.success(request, "Examen lancé ! Les candidats peuvent maintenant accéder à l'examen.")
 
     return redirect('dashboard_admin')

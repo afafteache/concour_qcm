@@ -121,12 +121,19 @@ def import_candidats_excel(request):
 
 @login_required(login_url='login')
 @role_required('admin')
+def confirmer_suppression_candidat(request, profil_id):
+    from accounts.models import Profil
+    profil = get_object_or_404(Profil, id=profil_id, role='candidat')
+    return render(request, 'admin/candidats/confirmer_suppression.html', {'profil': profil})
+
+@login_required(login_url='login')
+@role_required('admin')
 def supprimer_candidat(request, profil_id):
-    """Supprimer un candidat."""
+    from accounts.models import Profil
     profil = get_object_or_404(Profil, id=profil_id, role='candidat')
     if request.method == 'POST':
         nom = profil.user.get_full_name()
-        profil.user.delete()  # supprime aussi le profil (CASCADE)
+        profil.user.delete()
         messages.success(request, f'Candidat {nom} supprimé avec succès.')
     return redirect('import_candidats')
 

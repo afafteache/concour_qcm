@@ -6,15 +6,11 @@ from accounts.decorators import role_required
 from accounts.models import Profil
 from concours.models import Concours, Module, SessionConcours
 from resultats.models import Resultat
-from .models import Examen
+from .models import Examen, ExamenEnCours
 
 
 def get_profil(user):
     return Profil.objects.filter(user=user).first()
-
-
-def get_session_de_examen(examen):
-    return SessionConcours.objects.filter(examen=examen).first()
 
 
 # ═══════════════════════════════════════════════════════
@@ -34,7 +30,7 @@ def dashboard_admin(request):
         SessionConcours.objects
         .filter(etat__in=['planifiee', 'en_cours'])
         .select_related('concours')
-        .order_by('date_heure_debut')
+        .order_by('-date_heure_debut')
         .first()
     )
 
@@ -61,28 +57,51 @@ def dashboard_admin(request):
             total_q = examen_actif.questions.count()
         except Exception:
             total_q = 0
+
+        # Candidats ayant soumis
+        soumis_ids = []
         for r in Resultat.objects.filter(examen=examen_actif).select_related('candidat'):
             pct = round(r.score / total_q * 100) if total_q > 0 else 0
             profil_c = get_profil(r.candidat)
+            cin = profil_c.cin if profil_c else '—'
+            soumis_ids.append(cin)
             candidats_suivi.append({
-                'nom': r.candidat.get_full_name(),
-                'cin': profil_c.cin if profil_c else '—',
-                'score': r.score,
-                'total': total_q,
+                'nom'        : r.candidat.get_full_name(),
+                'cin'        : cin,
+                'score'      : r.score,
+                'total'      : total_q,
                 'pourcentage': pct,
+                'statut'     : 'soumis',
             })
 
+        # Candidats en cours
+        for ec in ExamenEnCours.objects.filter(examen=examen_actif).select_related('candidat'):
+            try:
+                profil_c = get_profil(ec.candidat)
+                cin = profil_c.cin if profil_c else '—'
+                if cin not in soumis_ids:
+                    candidats_suivi.append({
+                        'nom'        : ec.candidat.get_full_name(),
+                        'cin'        : cin,
+                        'score'      : '—',
+                        'total'      : total_q,
+                        'pourcentage': 0,
+                        'statut'     : 'en_cours',
+                    })
+            except Exception:
+                pass
+
     return render(request, 'admin/dashboard_admin.html', {
-        'nb_concours': nb_concours,
-        'nb_candidats': nb_candidats,
-        'nb_sessions': nb_sessions,
-        'nb_resultats': nb_resultats,
-        'session_active': session_active,
-        'examen_actif': examen_actif,
-        'peut_lancer': peut_lancer,
+        'nb_concours'         : nb_concours,
+        'nb_candidats'        : nb_candidats,
+        'nb_sessions'         : nb_sessions,
+        'nb_resultats'        : nb_resultats,
+        'session_active'      : session_active,
+        'examen_actif'        : examen_actif,
+        'peut_lancer'         : peut_lancer,
         'secondes_avant_debut': secondes_avant_debut,
-        'candidats_suivi': candidats_suivi,
-        'now': now,
+        'candidats_suivi'     : candidats_suivi,
+        'now'                 : now,
     })
 
 
@@ -96,7 +115,7 @@ def admin_examens(request):
     examens = Examen.objects.select_related('cree_par').prefetch_related('questions').order_by('-date_creation')
     nb_nouveaux = examens.filter(statut='envoye').count()
     return render(request, 'admin/examens/liste.html', {
-        'examens': examens,
+        'examens'    : examens,
         'nb_nouveaux': nb_nouveaux,
     })
 
@@ -107,7 +126,7 @@ def admin_valider_examen(request, examen_id):
     examen = get_object_or_404(Examen, id=examen_id)
     if request.method == 'POST':
         examen.statut = 'valide'
-        examen.actif = True
+        examen.actif  = True
         examen.save()
         messages.success(request, f'L\'examen "{examen.titre}" a été validé.')
     return redirect('admin_examens')
@@ -116,29 +135,29 @@ def admin_valider_examen(request, examen_id):
 @login_required(login_url='login')
 @role_required('admin')
 def creer_session_pour_examen(request, examen_id):
-    examen = get_object_or_404(Examen, id=examen_id, statut='valide')
+    examen        = get_object_or_404(Examen, id=examen_id, statut='valide')
     concours_list = Concours.objects.all()
 
     if request.method == 'POST':
-        nom_session  = request.POST.get('nom_session', '').strip()
-        concours_id  = request.POST.get('concours')
-        date_debut   = request.POST.get('date_heure_debut')
-        date_fin     = request.POST.get('date_heure_fin')
-        duree        = request.POST.get('duree_minutes', 60)
+        nom_session = request.POST.get('nom_session', '').strip()
+        concours_id = request.POST.get('concours')
+        date_debut  = request.POST.get('date_heure_debut')
+        date_fin    = request.POST.get('date_heure_fin')
+        duree       = request.POST.get('duree_minutes', 60)
 
         if not nom_session or not concours_id or not date_debut or not date_fin:
             messages.error(request, 'Veuillez remplir tous les champs.')
         else:
             try:
                 concours = Concours.objects.get(id=concours_id)
-                session = SessionConcours.objects.create(
-                    nom_session=nom_session,
-                    concours=concours,
-                    date_heure_debut=date_debut,
-                    date_heure_fin=date_fin,
-                    duree_minutes=int(duree),
-                    etat='planifiee',
-                    lance_par=request.user,
+                session  = SessionConcours.objects.create(
+                    nom_session      = nom_session,
+                    concours         = concours,
+                    date_heure_debut = date_debut,
+                    date_heure_fin   = date_fin,
+                    duree_minutes    = int(duree),
+                    etat             = 'planifiee',
+                    lance_par        = request.user,
                 )
                 examen.session = session
                 examen.save()
@@ -148,9 +167,16 @@ def creer_session_pour_examen(request, examen_id):
                 messages.error(request, f'Erreur : {e}')
 
     return render(request, 'admin/sessions/creer_pour_examen.html', {
-        'examen': examen,
+        'examen'       : examen,
         'concours_list': concours_list,
     })
+
+
+@login_required(login_url='login')
+@role_required('admin')
+def admin_confirmer_suppression_examen(request, examen_id):
+    examen = get_object_or_404(Examen, id=examen_id)
+    return render(request, 'admin/examens/confirmer_suppression.html', {'examen': examen})
 
 
 # ═══════════════════════════════════════════════════════
@@ -187,17 +213,17 @@ def dashboard_candidat(request):
         diff = session_prochaine.date_heure_debut - now
         secondes_avant = max(int(diff.total_seconds()), 0)
 
-    mes_resultats = Resultat.objects.filter(candidat=request.user).select_related('examen').order_by('-date_passage')
+    mes_resultats      = Resultat.objects.filter(candidat=request.user).select_related('examen').order_by('-date_passage')
     examens_passes_ids = list(mes_resultats.values_list('examen_id', flat=True))
 
     return render(request, 'candidat/dashboard_candidat.html', {
-        'profil': profil,
+        'profil'             : profil,
         'examens_disponibles': examens_disponibles,
-        'mes_resultats': mes_resultats,
-        'examens_passes_ids': examens_passes_ids,
-        'session_prochaine': session_prochaine,
-        'secondes_avant': secondes_avant,
-        'now': now,
+        'mes_resultats'      : mes_resultats,
+        'examens_passes_ids' : examens_passes_ids,
+        'session_prochaine'  : session_prochaine,
+        'secondes_avant'     : secondes_avant,
+        'now'                : now,
     })
 
 
@@ -210,7 +236,7 @@ def dashboard_candidat(request):
 def examen_view(request, examen_id):
     now    = timezone.now()
     examen = get_object_or_404(Examen, id=examen_id)
-    session = get_session_de_examen(examen)
+    session = examen.session if examen.session_id else None
 
     if session:
         if not session.examen_lance:
@@ -222,6 +248,9 @@ def examen_view(request, examen_id):
 
     if Resultat.objects.filter(candidat=request.user, examen=examen).exists():
         return redirect('resultat', examen_id=examen_id)
+
+    # Enregistre que le candidat a ouvert l'examen
+    ExamenEnCours.objects.get_or_create(candidat=request.user, examen=examen)
 
     questions = examen.questions.prefetch_related('choix_set').all()
 
@@ -237,6 +266,7 @@ def examen_view(request, examen_id):
                 except Exception:
                     pass
         Resultat.objects.create(candidat=request.user, examen=examen, score=score)
+        ExamenEnCours.objects.filter(candidat=request.user, examen=examen).delete()
         return redirect('resultat', examen_id=examen_id)
 
     if session:
@@ -245,8 +275,8 @@ def examen_view(request, examen_id):
         duree_restante = 3600
 
     return render(request, 'candidat/examen.html', {
-        'examen': examen,
-        'questions': questions,
+        'examen'        : examen,
+        'questions'     : questions,
         'duree_restante': duree_restante,
     })
 
@@ -258,17 +288,17 @@ def examen_view(request, examen_id):
 @login_required(login_url='login_candidat')
 @role_required('candidat')
 def resultat_view(request, examen_id):
-    examen   = get_object_or_404(Examen, id=examen_id)
-    resultat = get_object_or_404(Resultat, candidat=request.user, examen=examen)
-    total    = examen.questions.count()
+    examen      = get_object_or_404(Examen, id=examen_id)
+    resultat    = get_object_or_404(Resultat, candidat=request.user, examen=examen)
+    total       = examen.questions.count()
     pourcentage = round((resultat.score / total * 100), 1) if total > 0 else 0
 
     return render(request, 'candidat/resultat.html', {
-        'examen': examen,
-        'resultat': resultat,
-        'total': total,
+        'examen'     : examen,
+        'resultat'   : resultat,
+        'total'      : total,
         'pourcentage': pourcentage,
-        'reussi': pourcentage >= 50,
+        'reussi'     : pourcentage >= 50,
     })
 
 
@@ -285,9 +315,9 @@ def dashboard_enseignant(request):
     examens      = Examen.objects.filter(cree_par=request.user)
 
     return render(request, 'enseignant/dashboard_enseignant.html', {
-        'questions': questions,
+        'questions'   : questions,
         'nb_questions': nb_questions,
-        'examens': examens,
+        'examens'     : examens,
     })
 
 
@@ -304,6 +334,17 @@ def admin_supprimer_examen(request, examen_id):
         examen.delete()
         messages.success(request, f'Examen "{titre}" supprimé avec succès.')
     return redirect('admin_examens')
+
+
+# ═══════════════════════════════════════════════════════
+#  CONFIRMER SUPPRESSION EXAMEN — ENSEIGNANT
+# ═══════════════════════════════════════════════════════
+
+@login_required(login_url='login')
+@role_required('enseignant')
+def enseignant_confirmer_suppression_examen(request, examen_id):
+    examen = get_object_or_404(Examen, id=examen_id, cree_par=request.user)
+    return render(request, 'enseignant/examens/confirmer_suppression.html', {'examen': examen})
 
 
 # ═══════════════════════════════════════════════════════
