@@ -273,25 +273,27 @@
 {% block extra_js %}
 <script>
 (function () {
-    const secondes = {{ secondes_avant_debut|default:0 }};
     const el = document.getElementById('countdown');
-    if (!el || secondes <= 0) {
-        if (el) el.textContent = '00:00:00';
-        return;
-    }
-    let reste = secondes;
+    if (!el) return;
+
+    // Timestamp Unix de l'heure de début (en secondes)
+    const debutTimestamp = {{ session_active.date_heure_debut|date:"U"|default:0 }};
+    if (!debutTimestamp) return;
+
     function afficher() {
+        const maintenant = Math.floor(Date.now() / 1000);
+        const reste = debutTimestamp - maintenant;
+
         if (reste <= 0) {
             el.textContent = '00:00:00';
-            // Force rechargement complet de la page
-            window.location.href = window.location.href;
+            setTimeout(() => window.location.reload(), 2000);
             return;
         }
+
         const h = String(Math.floor(reste / 3600)).padStart(2, '0');
         const m = String(Math.floor((reste % 3600) / 60)).padStart(2, '0');
         const s = String(reste % 60).padStart(2, '0');
         el.textContent = h + ':' + m + ':' + s;
-        reste--;
         setTimeout(afficher, 1000);
     }
     afficher();

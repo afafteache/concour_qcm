@@ -77,63 +77,74 @@
                     </div>
                     <div class="card-body">
 
-                        {% if examens_passes_ids and session_encore_active %}
-                        <div class="text-center py-5">
-                            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
-                            <h6 class="font-weight-bold text-success mb-2">Vous avez déjà passé cet examen !</h6>
-                            <p class="text-muted">Vos réponses ont été enregistrées.</p>
-                        </div>
-
-                        {% elif examens_disponibles %}
-                        {% for examen in examens_disponibles %}
-                        <div class="card exam-card shadow-sm mb-3">
-                            <div class="card-body">
-                                <div class="row align-items-center">
-                                    <div class="col">
-                                        <h6 class="font-weight-bold text-gray-800 mb-1">{{ examen.titre }}</h6>
-                                        <div class="text-muted small">
-                                            <i class="fas fa-clock mr-1"></i>
-                                            Durée : {{ examen.session.duree_minutes }} min
-                                            &nbsp;|&nbsp;
-                                            <i class="fas fa-calendar mr-1"></i>
-                                            Fin : {{ examen.session.date_heure_fin|date:"d/m/Y H:i" }}
+                        {% if examens_disponibles %}
+                            {% for examen in examens_disponibles %}
+                                {% if examen.id in examens_passes_ids %}
+                                <!-- Ce candidat a déjà passé CET examen spécifique -->
+                                <div class="text-center py-5">
+                                    <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                                    <h6 class="font-weight-bold text-success mb-2">Vous avez déjà passé cet examen !</h6>
+                                    <p class="text-muted">Vos réponses ont été enregistrées.</p>
+                                </div>
+                                {% else %}
+                                <!-- Examen disponible et non encore passé -->
+                                <div class="card exam-card shadow-sm mb-3">
+                                    <div class="card-body">
+                                        <div class="row align-items-center">
+                                            <div class="col">
+                                                <h6 class="font-weight-bold text-gray-800 mb-1">{{ examen.titre }}</h6>
+                                                <div class="text-muted small">
+                                                    <i class="fas fa-clock mr-1"></i>
+                                                    Durée : {{ examen.session.duree_minutes }} min
+                                                    &nbsp;|&nbsp;
+                                                    <i class="fas fa-calendar mr-1"></i>
+                                                    Fin : {{ examen.session.date_heure_fin|date:"d/m/Y H:i" }}
+                                                </div>
+                                            </div>
+                                            <div class="col-auto">
+                                                <a href="{% url 'examen' examen.id %}"
+                                                    class="btn btn-success btn-lg px-4 shadow-sm">
+                                                    <i class="fas fa-play mr-2"></i>Commencer l'examen
+                                                </a>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="col-auto">
-                                        <a href="{% url 'examen' examen.id %}"
-                                            class="btn btn-success btn-lg px-4 shadow-sm">
-                                            <i class="fas fa-play mr-2"></i>Commencer l'examen
-                                        </a>
-                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                        {% endfor %}
+                                {% endif %}
+                            {% endfor %}
 
                         {% elif examens_en_retard %}
-                        {% for examen in examens_en_retard %}
-                        <div class="card exam-card-retard shadow-sm mb-3">
-                            <div class="card-body">
-                                <div class="row align-items-center">
-                                    <div class="col">
-                                        <h6 class="font-weight-bold text-gray-800 mb-1">{{ examen.titre }}</h6>
-                                        <div class="text-danger small font-weight-bold">
-                                            <i class="fas fa-exclamation-triangle mr-1"></i>
-                                            Vous avez dépassé le temps autorisé pour commencer cet examen.
+                            {% for examen in examens_en_retard %}
+                                {% if examen.id in examens_passes_ids %}
+                                <div class="text-center py-5">
+                                    <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                                    <h6 class="font-weight-bold text-success mb-2">Vous avez déjà passé cet examen !</h6>
+                                    <p class="text-muted">Vos réponses ont été enregistrées.</p>
+                                </div>
+                                {% else %}
+                                <div class="card exam-card-retard shadow-sm mb-3">
+                                    <div class="card-body">
+                                        <div class="row align-items-center">
+                                            <div class="col">
+                                                <h6 class="font-weight-bold text-gray-800 mb-1">{{ examen.titre }}</h6>
+                                                <div class="text-danger small font-weight-bold">
+                                                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                                                    Vous avez dépassé le temps autorisé pour commencer cet examen.
+                                                </div>
+                                                <div class="text-muted small mt-1">
+                                                    L'accès à l'examen était autorisé pendant les 5 premières minutes.
+                                                </div>
+                                            </div>
+                                            <div class="col-auto">
+                                                <button class="btn btn-secondary btn-lg px-4 btn-commencer-disabled" disabled>
+                                                    <i class="fas fa-lock mr-2"></i>Accès refusé
+                                                </button>
+                                            </div>
                                         </div>
-                                        <div class="text-muted small mt-1">
-                                            L'accès à l'examen était autorisé pendant les 5 premières minutes.
-                                        </div>
-                                    </div>
-                                    <div class="col-auto">
-                                        <button class="btn btn-secondary btn-lg px-4 btn-commencer-disabled" disabled>
-                                            <i class="fas fa-lock mr-2"></i>Accès refusé
-                                        </button>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                        {% endfor %}
+                                {% endif %}
+                            {% endfor %}
 
                         {% elif session_prochaine and not session_prochaine.examen_lance %}
                         <div class="text-center py-4">
